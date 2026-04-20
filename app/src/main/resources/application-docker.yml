@@ -1,0 +1,13 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:postgresql://db:5432/auth_db
+    username: user
+    password: password
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  liquibase:
+    enabled: false
