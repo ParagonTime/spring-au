@@ -33,6 +33,6 @@ public class RegistrationService {
         newUser.setPasswordHash(passwordHash);
         newUser.setRole(Role.USER);
         userRepository.save(newUser);
-        log.info("safe new user: {}", newUser);
+        log.info("Сохранен новый пользователь: {}", newUser);
     }
 }

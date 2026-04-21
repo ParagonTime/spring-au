@@ -1,6 +1,5 @@
 package org.pt.project.service;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.pt.project.dto.LoginRequest;
@@ -42,6 +41,7 @@ public class AuthorizationService {
 
         String token = jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
 
+        log.info("created by user {} token {}", request.getLogin(), token.substring(token.length() / 3));
         return new TokenResponse(token, expiresAt);
     }
 }

@@ -16,12 +16,14 @@ public class HandlerForException {
     @ExceptionHandler(AuthenticationException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ErrorResponse handleAuthError(AuthenticationException e) {
+        log.error("Неверный логин или пароль");
         return new ErrorResponse("Неверный логин или пароль");
     }
 
     @ExceptionHandler(LoginDuplicateException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public ErrorResponse handleDuplicateLogin(LoginDuplicateException e) {
+        log.error(e.getMessage());
         return new ErrorResponse(e.getMessage());
     }
 
