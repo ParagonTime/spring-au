@@ -43,3 +43,5 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      auth-service:
+        condition: service_started
