@@ -1,7 +1,6 @@
 ## Quick Start
 
 ```bash
-# 1. Клонировать репозиторий
 git clone git@github.com:ParagonTime/spring-au.git
 cd spring-au
 ```
