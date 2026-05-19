@@ -63,11 +63,24 @@ services:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
 
+  gateway:
+    build: ./gateway
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://keycloak:8080/realms/task-realm
+    depends_on:
+      - auth-service
+      - app-service
+      - keycloak
+
   auth-service:
     build: ./auth
     container_name: auth-service
-    ports:
-      - "8081:8081"
+    #ports:
+    #  - "8081:8081"
     environment:
       SPRING_PROFILES_ACTIVE: docker
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/auth_db
@@ -84,8 +97,8 @@ services:
   app-service:
     build: ./app
     container_name: task-service
-    ports:
-      - "8080:8080"
+    #ports:
+    #  - "8080:8080"
     environment:
       SPRING_PROFILES_ACTIVE: docker
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/auth_db

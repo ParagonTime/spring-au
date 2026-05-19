@@ -1,0 +1,33 @@
+server:
+  port: 8080
+
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8180/realms/task-realm
+  cloud:
+    gateway:
+      routes:
+        - id: auth-registration
+          uri: http://localhost:8081
+          predicates:
+            - Path=/registration,/registration/**
+
+        - id: auth-api
+          uri: http://localhost:8081
+          predicates:
+            - Path=/api/auth/**
+
+        - id: task-api
+          uri: http://localhost:8082
+          predicates:
+            - Path=/tasks,/tasks/**
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.cloud.gateway.route: TRACE
+    org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping: TRACE
+    org.springframework.cloud.gateway.config: DEBUG

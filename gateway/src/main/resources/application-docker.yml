@@ -1,0 +1,17 @@
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://keycloak:8080/realms/task-realm
+  cloud:
+    gateway:
+      routes:
+        - id: auth-public
+          uri: http://auth-service:8081
+          predicates:
+            - Path=/registration,/registration/**,/api/auth/**
+        - id: task-api
+          uri: http://app-service:8080
+          predicates:
+            - Path=/tasks,/tasks/**

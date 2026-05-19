@@ -17,11 +17,6 @@ spring:
     show-sql: false
   liquibase:
     enabled: false
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: http://localhost:8180/realms/task-realm
   kafka:
     bootstrap-servers: localhost:9094
     producer:
