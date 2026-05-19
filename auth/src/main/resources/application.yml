@@ -11,3 +11,40 @@ spring:
       ddl-auto: none
   liquibase:
     change-log: classpath:db/changelog/db-changelog-master.xml
+  kafka:
+    bootstrap-servers: localhost:9094
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        linger.ms: 10
+        batch.size: 16384
+      acks: all
+    admin:
+      auto-create-topics: true
+    consumer:
+      group-id: tasks-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8180/realms/task-realm
+
+keycloak:
+  auth-server-url: http://localhost:8180
+  realm: task-realm
+  resource: task-client
+  admin:
+    username: admin
+    password: admin
+
+auth:
+  kafka:
+    topics:
+      user-stream: user-stream
+      user-flow: user-flow

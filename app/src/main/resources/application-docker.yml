@@ -3,11 +3,56 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://db:5432/auth_db
+    url: jdbc:postgresql://postgres:5432/auth_db
     username: user
     password: password
+    driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: none
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: false
   liquibase:
     enabled: false
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://keycloak:8080/realms/task-realm
+  kafka:
+    bootstrap-servers: kafka:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
+        linger.ms: 10
+        batch.size: 16384
+      acks: all
+    admin:
+      auto-create-topics: true
+    consumer:
+      group-id: tasks-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+        spring.json.use.type.headers: false
+
+logging:
+  level:
+    org.springframework.web: INFO
+    org.hibernate: INFO
+    org.springframework.kafka: INFO
+
+app:
+  kafka:
+    topics:
+      task-flow: task-flow
+      task-stream: task-stream
+      status-changed: status-changed
+      executor-assigned: executor-assigned

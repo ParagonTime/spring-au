@@ -4,44 +4,54 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.pt.project.dto.LoginRequest;
 import org.pt.project.dto.TokenResponse;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.jwt.JwtClaimsSet;
-import org.springframework.security.oauth2.jwt.JwtEncoder;
-import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.Instant;
+import java.util.Map;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthorizationService {
 
-    private final AuthenticationManager authenticationManager;
-    private final JwtEncoder jwtEncoder;
+    @Value("${keycloak.auth-server-url}")
+    private String authServerUrl;
+
+    @Value("${keycloak.realm}")
+    private String realm;
+
+    @Value("${keycloak.resource}")
+    private String clientId;
+
+    private final RestTemplate restTemplate = new RestTemplate();
 
     public TokenResponse getToken(LoginRequest request) {
+        String tokenUrl = authServerUrl + "/realms/" + realm + "/protocol/openid-connect/token";
 
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getLogin(), request.getPassword())
-        );
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
-        Instant now = Instant.now();
-        Instant expiresAt = now.plusSeconds(3600);
+        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        body.add("client_id", clientId);
+        body.add("grant_type", "password");
+        body.add("username", request.getLogin());
+        body.add("password", request.getPassword());
 
-        JwtClaimsSet claims = JwtClaimsSet.builder()
-                .issuer("http://localhost:8081")
-                .issuedAt(now)
-                .expiresAt(expiresAt)
-                .subject(authentication.getName())
-                .claim("scope", "read write")
-                .build();
+        HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(body, headers);
 
-        String token = jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
+        ResponseEntity<Map> response = restTemplate.exchange(
+                tokenUrl, HttpMethod.POST, entity, Map.class);
 
-        log.info("created by user {} token {}", request.getLogin(), token.substring(token.length() / 3));
-        return new TokenResponse(token, expiresAt);
+        Map<String, Object> tokenData = response.getBody();
+        String accessToken = (String) tokenData.get("access_token");
+        long expiresIn = ((Number) tokenData.get("expires_in")).longValue();
+
+        log.info("Token issued for user {}", request.getLogin());
+        return new TokenResponse(accessToken, Instant.now().plusSeconds(expiresIn));
     }
 }

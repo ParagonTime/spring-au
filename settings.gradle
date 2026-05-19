@@ -1,2 +1,2 @@
 rootProject.name = 'authorization'
-include 'app', 'auth', 'repository'
+include 'app', 'auth', 'repository', 'gateway'
