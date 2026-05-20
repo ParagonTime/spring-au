@@ -17,6 +17,9 @@ public class GatewayRoutesConfig {
                 .route("task-api", r -> r
                         .path("/tasks", "/tasks/**")
                         .uri("http://app-service:8080"))
+                .route("search-api", r -> r
+                        .path("/search", "/search/**")
+                        .uri("http://search-service:8080"))
                 .build();
     }
 }

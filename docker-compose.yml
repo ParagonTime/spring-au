@@ -113,3 +113,19 @@ services:
         condition: service_started
       kafka:
         condition: service_started
+
+  search-service:
+    build: ./search
+    container_name: search-service
+    environment:
+      SPRING_PROFILE_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/auth_db
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_LIQUIBASE_ENABLED: "false"
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started

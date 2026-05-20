@@ -1,2 +1,3 @@
 rootProject.name = 'authorization'
 include 'app', 'auth', 'repository', 'gateway'
+include 'search'

@@ -22,3 +22,8 @@ CREATE TABLE tasks (
 
 --changeset developer:3
 CREATE INDEX idx_tasks_user_id ON tasks(user_id);
+
+--changeset developer:4
+CREATE TABLE search_schema (
+
+);
