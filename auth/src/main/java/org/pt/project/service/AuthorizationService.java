@@ -41,6 +41,7 @@ public class AuthorizationService {
         body.add("grant_type", "password");
         body.add("username", request.getLogin());
         body.add("password", request.getPassword());
+        body.add("scope", "openid");
 
         HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(body, headers);
 

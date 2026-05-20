@@ -34,28 +34,28 @@ public class TaskController {
     public TaskDto createTask(@Valid @RequestBody NewTaskRequest newTaskRequest,
                               @RequestHeader("user-id") String userId
     ) {
-        return taskService.createTask(newTaskRequest, Long.parseLong(userId));
+        return taskService.createTask(newTaskRequest, userId);
     }
 
     @GetMapping
     public Page<TaskDto> getTasks(Pageable pageable,
                                   @RequestHeader("user-id") String userId
     ) {
-        return taskService.getTasks(pageable, Long.parseLong(userId));
+        return taskService.getTasks(pageable, userId);
     }
 
     @GetMapping("/{id}")
     public TaskDto getTaskById(@Positive @PathVariable("id") Long taskId,
                                @RequestHeader("user-id") String userId
     ) {
-        return taskService.getTaskById(taskId, Long.parseLong(userId));
+        return taskService.getTaskById(taskId, userId);
     }
 
     @PatchMapping("/{id}/executor/{userId}")
     public void setTaskExecutor(@Positive @PathVariable("id") Long taskId,
                                 @RequestHeader("user-id") String userId
     ) {
-        taskService.setTaskExecutor(taskId, Long.parseLong(userId));
+        taskService.setTaskExecutor(taskId, userId);
     }
 
     @PatchMapping("/{id}/status/{status}")
@@ -64,6 +64,6 @@ public class TaskController {
                               @RequestHeader("user-id") String userId
 
     ) {
-        taskService.setTaskStatus(taskId, status, Long.parseLong(userId));
+        taskService.setTaskStatus(taskId, status, userId);
     }
 }

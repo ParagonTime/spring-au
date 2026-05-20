@@ -38,12 +38,20 @@ public class UserInfoGlobalFilter implements GlobalFilter {
                 .map(auth -> (Jwt) auth.getPrincipal())
                 .flatMap(jwt -> fetchUserInfo(jwt.getTokenValue()))
                 .flatMap(userInfo -> {
+                    String userId = String.valueOf(userInfo.get("sub"));
+                    Map<String, Object> realmAccess = (Map<String, Object>) userInfo.get("realm_access");
+                    String rolesString;
+                    if (realmAccess != null && realmAccess.get("roles") instanceof List) {
+                        List<String> roles = (List<String>) realmAccess.get("roles");
+                        rolesString = String.join(",", roles);
+                    } else {
+                        rolesString = "";
+                    }
+
                     ServerWebExchange modifiedExchange = exchange.mutate()
                             .request(r -> r.headers(headers -> {
-                                headers.set("user-id", String.valueOf(userInfo.get("sub")));
-                                Map<String, List<String>> realmAccess =
-                                        (Map<String, List<String>>) userInfo.get("realm_access");
-                                headers.set("user-roles", String.join(",", realmAccess.get("roles")));
+                                headers.set("user-id", userId);
+                                headers.set("user-roles", rolesString);
                             }))
                             .build();
                     return chain.filter(modifiedExchange);

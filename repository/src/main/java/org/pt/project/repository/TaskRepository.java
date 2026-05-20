@@ -11,9 +11,9 @@ import java.util.Optional;
 
 public interface TaskRepository extends JpaRepository<Task, Long> {
 
-    @Query("SELECT t FROM Task t LEFT JOIN FETCH t.user")
-    Page<Task> findAllWithUser(Pageable pageable);
+    @Query("SELECT t FROM Task t WHERE t.userId = :id")
+    Page<Task> findAllWithUser(Pageable pageable,@Param("id") String userId);
 
-    @Query("SELECT t FROM Task t LEFT JOIN FETCH t.user WHERE t.id = :id")
+    @Query("SELECT t FROM Task t WHERE t.id = :id")
     Optional<Task> findTaskById(@Param("id") Long id);
 }

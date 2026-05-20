@@ -9,22 +9,7 @@ spring:
           issuer-uri: http://localhost:8180/realms/task-realm
   cloud:
     gateway:
-      routes:
-        - id: auth-registration
-          uri: http://localhost:8081
-          predicates:
-            - Path=/registration,/registration/**
-
-        - id: auth-api
-          uri: http://localhost:8081
-          predicates:
-            - Path=/api/auth/**
-
-        - id: task-api
-          uri: http://localhost:8082
-          predicates:
-            - Path=/tasks,/tasks/**
-
+      routes: []
 logging:
   level:
     org.springframework.cloud.gateway: DEBUG

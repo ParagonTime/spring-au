@@ -19,9 +19,7 @@ public class TaskMapper {
         taskDto.setStatus(task.getStatus());
         taskDto.setTitle(task.getTitle());
         taskDto.setCreatedAt(task.getCreatedAt());
-        if (task.getUser() != null) {
-            taskDto.setUser(userMapper.toUserDto(task.getUser()));
-        }
+        taskDto.setUserId(task.getUserId());
         return taskDto;
     }
 

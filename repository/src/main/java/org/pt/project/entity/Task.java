@@ -15,6 +15,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
+import java.util.UUID;
 
 
 @Entity
@@ -25,16 +26,20 @@ public class Task {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @Column(name = "title", nullable = false)
     private String title;
+
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 50)
     private TaskStatus status;
-    @ManyToOne(fetch = FetchType.LAZY)
+
     @JoinColumn(name = "user_id")
-    private User user;
+    private UUID userId;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 

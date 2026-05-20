@@ -11,7 +11,11 @@ import org.pt.project.event.UserStreamEvent;
 import org.pt.project.exception.LoginDuplicateException;
 import org.pt.project.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -20,9 +24,11 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import java.net.URI;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -61,22 +67,23 @@ public class RegistrationService {
             throw new LoginDuplicateException(LOGIN_DUPLICATE_MESSAGE + request.getLogin());
         }
 
-        createKeycloakUser(request);
+        UUID keycloakUserId = createKeycloakUser(request);
 
         User newUser = new User();
         newUser.setLogin(request.getLogin());
         newUser.setEmail(request.getEmail());
         newUser.setRole(Role.USER);
         newUser.setCreatedAt(Instant.now());
+        newUser.setUserId(keycloakUserId);
         User savedUser = userRepository.save(newUser);
 
         UserCreatedFlowEvent userCreatedFlowEvent = new UserCreatedFlowEvent(
-                savedUser.getId(),
+                savedUser.getUserId(),
                 savedUser.getCreatedAt().toString()
         );
 
         UserStreamEvent userStreamEvent = new UserStreamEvent(
-                savedUser.getId(),
+                savedUser.getUserId(),
                 savedUser.getRole(),
                 savedUser.getEmail(),
                 savedUser.getCreatedAt().toString()
@@ -92,7 +99,7 @@ public class RegistrationService {
         log.info("Сохранен новый пользователь: {}", newUser);
     }
 
-    private void createKeycloakUser(UserRegistrationRequest request) {
+    private UUID createKeycloakUser(UserRegistrationRequest request) {
         String url = authServerUrl + "/admin/realms/" + realm + "/users";
 
         Map<String, Object> userMap = Map.of(
@@ -112,10 +119,20 @@ public class RegistrationService {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(getAdminToken());
 
+        ResponseEntity<Void> response = restTemplate.exchange(
+                url, HttpMethod.POST, new HttpEntity<>(userMap, headers), Void.class);
 
+        URI location = response.getHeaders().getLocation();
+        if (location == null) {
+            throw new IllegalStateException("Keycloak не вернул Location заголовок");
+        }
 
-        restTemplate.exchange(url, HttpMethod.POST, new HttpEntity<>(userMap, headers), String.class);
+        String path = location.getPath();
+
         log.info("Пользователь {} создан в Keycloak", request.getLogin());
+
+        String userIdStr = path.substring(path.lastIndexOf('/') + 1);
+        return UUID.fromString(userIdStr);
     }
 
     private String getAdminToken() {

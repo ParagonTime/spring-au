@@ -6,7 +6,8 @@ CREATE TABLE users (
     login VARCHAR(255) NOT NULL UNIQUE,
     role VARCHAR(20) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
-    created_at TIMESTAMP NOT NULL
+    created_at TIMESTAMP NOT NULL,
+    user_id UUID NOT NULL UNIQUE
 );
 
 --changeset developer:2
@@ -15,9 +16,8 @@ CREATE TABLE tasks (
     title VARCHAR(255) NOT NULL,
     description TEXT,
     status VARCHAR(50) NOT NULL,
-    user_id BIGINT,
-    created_at TIMESTAMP NOT NULL,
-    CONSTRAINT fk_tasks_user FOREIGN KEY (user_id) REFERENCES users (id)
+    user_id UUID,
+    created_at TIMESTAMP NOT NULL
 );
 
 --changeset developer:3

@@ -13,7 +13,6 @@ import org.pt.project.event.TaskCreatedFlowEvent;
 import org.pt.project.event.TaskStreamEvent;
 import org.pt.project.exception.NoFoundException;
 import org.pt.project.mapper.TaskMapper;
-import org.pt.project.mapper.UserMapper;
 import org.pt.project.repository.TaskRepository;
 import org.pt.project.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,6 +25,7 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -35,7 +35,6 @@ public class TaskService {
     private final TaskRepository taskRepository;
     private final UserRepository userRepository;
     private final TaskMapper taskMapper;
-    private final UserMapper userMapper;
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @Value("${app.kafka.topics.task-stream}")
@@ -51,14 +50,10 @@ public class TaskService {
     private String statusChangedTopic;
 
     @Transactional
-    public TaskDto createTask(NewTaskRequest newTaskRequest, Long userId) {
+    public TaskDto createTask(NewTaskRequest newTaskRequest, String userId) {
         log.info("Creating task with title: {}", newTaskRequest.getTitle());
         Task task = taskMapper.toTaskEntity(newTaskRequest);
-        if (newTaskRequest.getUserId() != null) {
-            User user = userRepository.findById(newTaskRequest.getUserId())
-                    .orElseThrow(() -> new NoFoundException("User no found id: " + newTaskRequest.getUserId()));
-            task.setUser(user);
-        }
+        task.setUserId(UUID.fromString(userId));
         task.setStatus(TaskStatus.CREATED);
         task.setCreatedAt(Instant.now());
         Task savedTask = taskRepository.save(task);
@@ -67,7 +62,7 @@ public class TaskService {
         TaskStreamEvent taskStreamEvent = new TaskStreamEvent(
                 savedTask.getId(),
                 savedTask.getTitle(),
-                savedTask.getUser() != null ? userMapper.toUserDto(savedTask.getUser()) : null,
+                savedTask.getUserId(),
                 savedTask.getDescription(),
                 savedTask.getStatus(),
                 savedTask.getCreatedAt().toString()
@@ -90,13 +85,13 @@ public class TaskService {
     }
 
     @Transactional(readOnly = true)
-    public Page<TaskDto> getTasks(Pageable pageable, Long userId) {
+    public Page<TaskDto> getTasks(Pageable pageable, String userId) {
         log.debug("Getting tasks with pageable: {}", pageable);
-        return taskRepository.findAllWithUser(pageable).map(taskMapper::toTaskDto);
+        return taskRepository.findAllWithUser(pageable, userId).map(taskMapper::toTaskDto);
     }
 
     @Transactional(readOnly = true)
-    public TaskDto getTaskById(Long taskId, Long userId) {
+    public TaskDto getTaskById(Long taskId, String userId) {
         log.debug("Getting task by id: {}", taskId);
         Task task = taskRepository.findTaskById(taskId)
                 .orElseThrow(() -> new NoFoundException("Task no found: " + taskId));
@@ -105,16 +100,15 @@ public class TaskService {
     }
 
     @Transactional
-    public void setTaskExecutor(Long taskId, Long userId) {
+    public void setTaskExecutor(Long taskId, String userId) {
         log.info("Setting executor for task {} to user {}", taskId, userId);
         Task task = taskRepository.findTaskById(taskId)
                 .orElseThrow(() -> new NoFoundException("Task no found: " + taskId));
-        User user = userRepository.findById(userId)
+        User user = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new NoFoundException("User no found id: " + userId));
-        task.setUser(user);
+        task.setUserId(UUID.fromString(userId));
 
-        taskRepository.save(task);
-
+        taskRepository.save(task); // сделать разделение на ownerId из заголовка и userId из param на кого кидать task
 
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
@@ -125,7 +119,7 @@ public class TaskService {
     }
 
     @Transactional
-    public void setTaskStatus(Long taskId, TaskStatus status, Long userId) {
+    public void setTaskStatus(Long taskId, TaskStatus status, String userId) {
         log.info("Setting task {} status to {}", taskId, status);
 
         Task task = taskRepository.findTaskById(taskId)

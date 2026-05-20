@@ -1,4 +1,4 @@
 package org.pt.project.event;
 
-public record ExecutorAssignedEvent(Long taskId, Long executorId)  {
+public record ExecutorAssignedEvent(Long taskId, String executorId)  {
 }

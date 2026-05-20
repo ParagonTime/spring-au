@@ -31,7 +31,7 @@ tasks.register('startAll') {
 	description = 'Сборка всех модулей и запуск через Docker Compose'
 
 	// Сначала заставляем Gradle собрать jar-файлы обоих сервисов
-	dependsOn ':auth:bootJar', ':app:bootJar'
+	dependsOn ':auth:bootJar', ':app:bootJar', ':gateway:bootJar'
 
 	doLast {
 		exec {

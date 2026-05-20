@@ -4,12 +4,13 @@ import lombok.Data;
 import org.pt.project.entity.TaskStatus;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @Data
 public class TaskDto {
     private Long id;
     private String title;
-    private UserDto user;
+    private UUID userId;
     private String description;
     private TaskStatus status;
     private Instant createdAt;

@@ -5,6 +5,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.security.web.server.firewall.ServerWebExchangeFirewall;
+import org.springframework.security.web.server.firewall.StrictServerWebExchangeFirewall;
 
 @Configuration
 @EnableWebFluxSecurity
@@ -22,5 +24,13 @@ public class GatewaySecurityConfig {
                         .jwt(jwt -> {})
                 );
         return http.build();
+    }
+
+    @Bean
+    public ServerWebExchangeFirewall serverWebExchangeFirewall() {
+        StrictServerWebExchangeFirewall firewall = new StrictServerWebExchangeFirewall();
+        firewall.setAllowedHeaderNames(name -> true);
+        firewall.setAllowedHeaderValues(value -> true);
+        return firewall;
     }
 }
