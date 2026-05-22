@@ -16,7 +16,7 @@ import java.util.UUID;
 
 @Data
 @Entity
-@Table(name = "search_user")
+@Table(name = "search_users")
 @NoArgsConstructor
 public class SearchUser {
     @Id

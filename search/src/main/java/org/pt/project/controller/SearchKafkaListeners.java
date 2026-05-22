@@ -12,12 +12,12 @@ import org.springframework.stereotype.Component;
 public class SearchKafkaListeners {
     private final SearchService searchService;
 
-    @KafkaListener(topics = "${search.kafka.topics.user-stream}")
+    @KafkaListener(topics = "${search.kafka.topics.user-stream}", containerFactory = "userListenerFactory")
     public void handleUserStream(UserStreamEvent event) {
         searchService.handleUserStreamEvent(event);
     }
 
-    @KafkaListener(topics = "${search.kafka.topics.task-stream}")
+    @KafkaListener(topics = "${search.kafka.topics.task-stream}", containerFactory = "taskListenerFactory")
     public void handleTaskStream(TaskStreamEvent event) {
         searchService.handleTaskStreamEvent(event);
     }

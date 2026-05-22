@@ -12,6 +12,6 @@ import java.util.UUID;
 public interface SearchUserRepository extends JpaRepository<SearchUser, Long> {
     Optional<SearchUser> findByUserId(UUID uuid);
 
-    @Query(value = "SELECT * FROM search_schema.search_users WHERE similarity(email, :email) > 0.3", nativeQuery = true)
+    @Query(value = "SELECT * FROM search_users WHERE similarity(email, :email) > 0.3", nativeQuery = true)
     List<SearchUser> findByEmail(@Param("email") String email);
 }

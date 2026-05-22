@@ -3,7 +3,7 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://postgres:5432/auth_db?currentSchema=search_schema
+    url: jdbc:postgresql://postgres:5432/auth_db
     username: user
     password: password
     driver-class-name: org.postgresql.Driver
@@ -12,7 +12,6 @@ spring:
       ddl-auto: none
     properties:
       hibernate:
-        default_schema: search_schema
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
     show-sql: false
