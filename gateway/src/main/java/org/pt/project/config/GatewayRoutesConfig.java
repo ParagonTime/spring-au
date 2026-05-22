@@ -12,7 +12,7 @@ public class GatewayRoutesConfig {
     public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
         return builder.routes()
                 .route("auth-public", r -> r
-                        .path("/registration", "/registration/**", "/api/auth/**")
+                        .path("/registration", "/registration/**", "/api/auth/**", "/users", "/users/**")
                         .uri("http://auth-service:8081"))
                 .route("task-api", r -> r
                         .path("/tasks", "/tasks/**")

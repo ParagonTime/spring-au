@@ -3,7 +3,7 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://postgres:5432/auth_db
+    url: jdbc:postgresql://postgres:5432/auth_db?currentSchema=search_schema
     username: user
     password: password
     driver-class-name: org.postgresql.Driver
@@ -12,6 +12,7 @@ spring:
       ddl-auto: none
     properties:
       hibernate:
+        default_schema: search_schema
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
     show-sql: false
@@ -19,33 +20,19 @@ spring:
     enabled: false
   kafka:
     bootstrap-servers: kafka:9092
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-      properties:
-        spring.json.add.type.headers: false
-        linger.ms: 10
-        batch.size: 16384
-      acks: all
-    admin:
-      auto-create-topics: false
     consumer:
-      group-id: search-service-group      # уникальное имя группы
+      group-id: search-service-group
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
-        spring.json.trusted.packages: "*"
+        spring.json.trusted.packages: "org.pt.project.event"
         spring.json.use.type.headers: false
-      # producer можно оставить пустым, если search не публикует события
-      producer:
-        key-serializer: org.apache.kafka.common.serialization.StringSerializer
-        value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
 search:
   kafka:
     topics:
       task-flow: task-flow
       task-stream: task-stream
-      user-stream: user-stream
       user-flow: user-flow
+      user-stream: user-stream

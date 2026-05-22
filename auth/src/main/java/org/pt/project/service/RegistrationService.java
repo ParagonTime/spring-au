@@ -1,6 +1,5 @@
 package org.pt.project.service;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.pt.project.dto.UserRegistrationRequest;
@@ -11,23 +10,13 @@ import org.pt.project.event.UserStreamEvent;
 import org.pt.project.exception.LoginDuplicateException;
 import org.pt.project.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestTemplate;
 
-import java.net.URI;
 import java.time.Instant;
-import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
@@ -36,27 +25,14 @@ import java.util.UUID;
 public class RegistrationService {
 
     private final UserRepository userRepository;
+    private final KeycloakService keycloakService;
     private final KafkaTemplate<String, Object> kafkaTemplate;
-
-    @Value("${keycloak.auth-server-url}")
-    private String authServerUrl;
-
-    @Value("${keycloak.realm}")
-    private String realm;
-
-    @Value("${keycloak.admin.username}")
-    private String adminUsername;
-
-    @Value("${keycloak.admin.password}")
-    private String adminPassword;
 
     @Value("${auth.kafka.topics.user-stream}")
     private String userStreamTopic;
 
     @Value("${auth.kafka.topics.user-flow}")
     private String userFlowTopic;
-
-    private final RestTemplate restTemplate = new RestTemplate();
 
     private static final String LOGIN_DUPLICATE_MESSAGE = "Логин уже используется ";
 
@@ -67,7 +43,7 @@ public class RegistrationService {
             throw new LoginDuplicateException(LOGIN_DUPLICATE_MESSAGE + request.getLogin());
         }
 
-        UUID keycloakUserId = createKeycloakUser(request);
+        UUID keycloakUserId = keycloakService.createKeycloakUser(request);
 
         User newUser = new User();
         newUser.setLogin(request.getLogin());
@@ -96,60 +72,6 @@ public class RegistrationService {
                 kafkaTemplate.send(userStreamTopic, userStreamEvent);
             }
         });
-        log.info("Сохранен новый пользователь: {}", newUser);
-    }
-
-    private UUID createKeycloakUser(UserRegistrationRequest request) {
-        String url = authServerUrl + "/admin/realms/" + realm + "/users";
-
-        Map<String, Object> userMap = Map.of(
-                "username", request.getLogin(),
-                "email", request.getEmail(),
-                "enabled", true,
-                "firstName", request.getLogin(),
-                "lastName", request.getLogin(),
-                "credentials", List.of(Map.of(
-                        "type", "password",
-                        "value", request.getPassword(),
-                        "temporary", false
-                ))
-        );
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setBearerAuth(getAdminToken());
-
-        ResponseEntity<Void> response = restTemplate.exchange(
-                url, HttpMethod.POST, new HttpEntity<>(userMap, headers), Void.class);
-
-        URI location = response.getHeaders().getLocation();
-        if (location == null) {
-            throw new IllegalStateException("Keycloak не вернул Location заголовок");
-        }
-
-        String path = location.getPath();
-
-        log.info("Пользователь {} создан в Keycloak", request.getLogin());
-
-        String userIdStr = path.substring(path.lastIndexOf('/') + 1);
-        return UUID.fromString(userIdStr);
-    }
-
-    private String getAdminToken() {
-        String tokenUrl = authServerUrl + "/realms/master/protocol/openid-connect/token";
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
-        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
-        body.add("client_id", "admin-cli");
-        body.add("grant_type", "password");
-        body.add("username", adminUsername);
-        body.add("password", adminPassword);
-
-        ResponseEntity<Map> response = restTemplate.exchange(
-                tokenUrl, HttpMethod.POST, new HttpEntity<>(body, headers), Map.class);
-
-        return (String) response.getBody().get("access_token");
+        log.info("User created: {}", newUser);
     }
 }

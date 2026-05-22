@@ -118,7 +118,7 @@ services:
     build: ./search
     container_name: search-service
     environment:
-      SPRING_PROFILE_ACTIVE: docker
+      SPRING_PROFILES_ACTIVE: docker
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/auth_db
       SPRING_DATASOURCE_USERNAME: user
       SPRING_DATASOURCE_PASSWORD: password

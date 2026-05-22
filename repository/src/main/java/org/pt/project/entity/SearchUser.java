@@ -14,30 +14,25 @@ import lombok.NoArgsConstructor;
 import java.time.Instant;
 import java.util.UUID;
 
-
-@Entity
-@Table(name = "tasks")
 @Data
+@Entity
+@Table(name = "search_user")
 @NoArgsConstructor
-public class Task {
+public class SearchUser {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "title", nullable = false)
-    private String title;
-
-    @Column(name = "description", columnDefinition = "TEXT")
-    private String description;
+    @Column(name = "user_id", nullable = false, unique = true)
+    private UUID userId;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 50)
-    private TaskStatus status;
+    @Column(name = "role", nullable = false, length = 20)
+    private Role role;
 
-    @Column(name = "user_id")
-    private UUID userId;
+    @Column(name = "email", nullable = false, unique = true)
+    private String email;
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
-
 }

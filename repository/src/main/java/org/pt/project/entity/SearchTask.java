@@ -14,15 +14,17 @@ import lombok.NoArgsConstructor;
 import java.time.Instant;
 import java.util.UUID;
 
-
 @Entity
-@Table(name = "tasks")
+@Table(name = "search_tasks")
 @Data
 @NoArgsConstructor
-public class Task {
+public class SearchTask {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "task_id", nullable = false)
+    private Long taskId;
 
     @Column(name = "title", nullable = false)
     private String title;
