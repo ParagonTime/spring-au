@@ -102,12 +102,12 @@ public class TaskService {
         log.info("Setting executor for task {} to user {}", taskId, userId);
         Task task = taskRepository.findTaskById(taskId)
                 .orElseThrow(() -> new NoFoundException("Task no found: " + taskId));
-        User owner = userRepository.findByUserId(ownerId)
+        User owner = userRepository.findByUserId(UUID.fromString(ownerId))
                 .orElseThrow(() -> new NoFoundException("User no found id: " + userId));
         if (!owner.getUserId().equals(task.getUserId())) {
             throw new AccessDeniedException("access denied");
         }
-        User user = userRepository.findByUserId(userId)
+        User user = userRepository.findByUserId(UUID.fromString(ownerId))
                 .orElseThrow(() -> new NoFoundException("User no found id: " + userId));
         task.setUserId(UUID.fromString(userId));
 
@@ -142,7 +142,7 @@ public class TaskService {
         log.info("Setting task {} status to {}", taskId, status);
         Task task = taskRepository.findTaskById(taskId)
                 .orElseThrow(() -> new NoFoundException("Task no found: " + taskId));
-        User user = userRepository.findByUserId(userId)
+        User user = userRepository.findByUserId(UUID.fromString(userId))
                         .orElseThrow(() -> new NoFoundException("User no found id: " + userId));
         if (!user.getUserId().equals(task.getUserId())) {
             throw new AccessDeniedException("access denied");
@@ -181,7 +181,7 @@ public class TaskService {
         log.info("Updating task {} by user {}", taskId, userId);
         Task task = taskRepository.findTaskById(taskId)
                 .orElseThrow(() -> new NoFoundException("Task no found: " + taskId));
-        User user = userRepository.findByUserId(userId)
+        User user = userRepository.findByUserId(UUID.fromString(userId))
                 .orElseThrow(() -> new NoFoundException("User no found id: " + userId));
         if (!user.getUserId().equals(task.getUserId())) {
             throw new AccessDeniedException("Access denied");
@@ -228,7 +228,7 @@ public class TaskService {
         log.info("Deleting task {} by user {}", taskId, userId);
         Task task = taskRepository.findTaskById(taskId)
                 .orElseThrow(() -> new NoFoundException("Task no found: " + taskId));
-        User user = userRepository.findByUserId(userId)
+        User user = userRepository.findByUserId(UUID.fromString(userId))
                 .orElseThrow(() -> new NoFoundException("User no found id: " + userId));
         if (!user.getUserId().equals(task.getUserId())) {
             throw new AccessDeniedException("Access denied");
