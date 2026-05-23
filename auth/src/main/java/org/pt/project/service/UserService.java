@@ -42,13 +42,13 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public User getUserByUserId(String userId) {
-        return userRepository.findByUserId(userId)
+        return userRepository.findByUserId(UUID.fromString(userId))
                 .orElseThrow(() -> new NoFoundException("User no found id: " + userId));
     }
 
     @Transactional
     public User updateUser(String userId, UpdateUserRequest request) {
-        User user = userRepository.findByUserId(userId)
+        User user = userRepository.findByUserId(UUID.fromString(userId))
                 .orElseThrow(() -> new NoFoundException("User no found id: " + userId));
 
         int updateCounter = 0;
@@ -94,7 +94,7 @@ public class UserService {
 
     @Transactional
     public void deleteUser(String userId) {
-        User user = userRepository.findByUserId(userId)
+        User user = userRepository.findByUserId(UUID.fromString(userId))
                 .orElseThrow(() -> new NoFoundException("User no found id: " + userId));
 
         keycloakService.deleteKeycloakUser(UUID.fromString(userId));
