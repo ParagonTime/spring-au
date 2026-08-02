@@ -30,5 +30,7 @@ jobs:
 
       - name: Deploy to K8s
         run: |
-          kubectl apply -f k8s/dev/
-          kubectl rollout restart deployment -n dev
+          kubectl apply -f k8s/dev/gateway.yaml
+          kubectl apply -f k8s/dev/auth.yaml
+          kubectl apply -f k8s/dev/app.yaml
+          kubectl apply -f k8s/dev/search.yaml
