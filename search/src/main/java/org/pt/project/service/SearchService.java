@@ -27,6 +27,7 @@ public class SearchService {
     private final SearchTaskRepository searchTaskRepository;
     private final SearchUserRepository searchUserRepository;
 
+    // тест
     public SearchUserDTO searchUserById(String searchUserId, String userId) {
         SearchUser searchUser = searchUserRepository.findByUserId(UUID.fromString(searchUserId))
                 .orElseThrow(() -> new NoFoundException("Not found user by id " + searchUserId));
