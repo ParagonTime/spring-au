@@ -1,24 +1,18 @@
 server:
-  port: 8080
+  port: 8081
 
 spring:
   datasource:
-    url: jdbc:postgresql://postgres:5432/auth_db
-    username: user
-    password: password
-    driver-class-name: org.postgresql.Driver
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: none
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: true
-    show-sql: false
   liquibase:
-    enabled: false
+    change-log: classpath:db/changelog/db-changelog-master.xml
   kafka:
-    bootstrap-servers: kafka:9092
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS}
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
@@ -37,24 +31,29 @@ spring:
       properties:
         spring.json.trusted.packages: "*"
         spring.json.use.type.headers: false
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://keycloak:8080/realms/task-realm
 
-logging:
-  level:
-    org.springframework.web: INFO
-    org.hibernate: INFO
-    org.springframework.kafka: INFO
+keycloak:
+  auth-server-url: http://keycloak:8080
+  realm: task-realm
+  resource: task-client
+  admin:
+    username: ${KEYCLOAK_ADMIN_USERNAME}
+    password: ${KEYCLOAK_ADMIN_PASSWORD}
 
-app:
+auth:
   kafka:
     topics:
-      task-flow: task-flow
-      task-stream: task-stream
-      status-changed: status-changed
-      executor-assigned: executor-assigned
+      user-stream: user-stream
+      user-flow: user-flow
 
 management:
   server:
-    port: 8082
+    port: 8081
   endpoints:
     web:
       exposure:

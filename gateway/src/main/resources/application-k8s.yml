@@ -15,6 +15,10 @@ spring:
           uri: http://app-service:8080
           predicates:
             - Path=/tasks,/tasks/**
+        - id: search-api
+          uri: http://search-service:8080
+          predicates:
+            - Path=/search,/search/**
 
 management:
   server:
@@ -35,6 +39,3 @@ management:
 logging:
   level:
     org.springframework.cloud.gateway: DEBUG
-    org.springframework.cloud.gateway.route: TRACE
-    org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping: TRACE
-    org.springframework.cloud.gateway.config: DEBUG

@@ -3,9 +3,9 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://postgres:5432/auth_db
-    username: user
-    password: password
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -18,7 +18,7 @@ spring:
   liquibase:
     enabled: false
   kafka:
-    bootstrap-servers: kafka:9092
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS}
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
@@ -38,19 +38,11 @@ spring:
         spring.json.trusted.packages: "*"
         spring.json.use.type.headers: false
 
-logging:
-  level:
-    org.springframework.web: INFO
-    org.hibernate: INFO
-    org.springframework.kafka: INFO
-
 app:
   kafka:
     topics:
       task-flow: task-flow
       task-stream: task-stream
-      status-changed: status-changed
-      executor-assigned: executor-assigned
 
 management:
   server:

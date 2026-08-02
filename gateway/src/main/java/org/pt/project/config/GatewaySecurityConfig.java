@@ -17,7 +17,13 @@ public class GatewaySecurityConfig {
         http
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(exchanges -> exchanges
-                        .pathMatchers("/registration", "/registration/**", "/api/auth/**").permitAll()
+                        .pathMatchers(
+                                "/registration",
+                                "/registration/**",
+                                "/api/auth/**",
+                                "/actuator/prometheus",
+                                "/actuator/metrics"
+                        ).permitAll()
                         .anyExchange().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
