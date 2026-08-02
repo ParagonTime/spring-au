@@ -1,4 +1,4 @@
-name: Deploy to K8s
+name: Deploy to Local K8s
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -18,34 +18,15 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Make gradlew executable
-        run: chmod +x ./gradlew
-
       - name: Build with Gradle
         run: ./gradlew bootJar
 
-      - name: Build and push Docker images
+      - name: Build Docker images
         run: |
-          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
-          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-          docker build -t ghcr.io/$OWNER/gateway:dev ./gateway
-          docker build -t ghcr.io/$OWNER/auth:dev ./auth
-          docker build -t ghcr.io/$OWNER/app:dev ./app
-          docker build -t ghcr.io/$OWNER/search:dev ./search
-          docker push ghcr.io/$OWNER/gateway:dev
-          docker push ghcr.io/$OWNER/auth:dev
-          docker push ghcr.io/$OWNER/app:dev
-          docker push ghcr.io/$OWNER/search:dev
-
-      - name: Set up kubectl
-        uses: azure/setup-kubectl@v4
-        with:
-          version: 'latest'
-
-      - name: Set kubeconfig
-        run: |
-          mkdir -p $HOME/.kube
-          echo "${{ secrets.KUBECONFIG }}" | base64 -d > $HOME/.kube/config
+          docker build -t gateway:dev ./gateway
+          docker build -t auth:dev ./auth
+          docker build -t app:dev ./app
+          docker build -t search:dev ./search
 
       - name: Deploy to K8s
         run: |
