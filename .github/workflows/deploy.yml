@@ -24,26 +24,18 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew bootJar
 
-      - name: Build Docker images
+      - name: Build and push Docker images
         run: |
-          docker build -t ghcr.io/${{ github.repository_owner }}/gateway:dev ./gateway
-          docker build -t ghcr.io/${{ github.repository_owner }}/auth:dev ./auth
-          docker build -t ghcr.io/${{ github.repository_owner }}/app:dev ./app
-          docker build -t ghcr.io/${{ github.repository_owner }}/search:dev ./search
-
-      - name: Login to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Push Docker images
-        run: |
-          docker push ghcr.io/${{ github.repository_owner }}/gateway:dev
-          docker push ghcr.io/${{ github.repository_owner }}/auth:dev
-          docker push ghcr.io/${{ github.repository_owner }}/app:dev
-          docker push ghcr.io/${{ github.repository_owner }}/search:dev
+          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker build -t ghcr.io/$OWNER/gateway:dev ./gateway
+          docker build -t ghcr.io/$OWNER/auth:dev ./auth
+          docker build -t ghcr.io/$OWNER/app:dev ./app
+          docker build -t ghcr.io/$OWNER/search:dev ./search
+          docker push ghcr.io/$OWNER/gateway:dev
+          docker push ghcr.io/$OWNER/auth:dev
+          docker push ghcr.io/$OWNER/app:dev
+          docker push ghcr.io/$OWNER/search:dev
 
       - name: Set up kubectl
         uses: azure/setup-kubectl@v4
