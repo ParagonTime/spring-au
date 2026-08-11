@@ -23,9 +23,8 @@ jobs:
           distribution: 'temurin'
 
       - name: Verify kind cluster
-        shell: pwsh
         run: |
-          kubectl config use-context $env:KUBE_CONTEXT
+          kubectl config use-context "$KUBE_CONTEXT"
           kubectl cluster-info
           kubectl get nodes
 
@@ -40,17 +39,15 @@ jobs:
           docker build -t search:dev ./search
 
       - name: Load images into kind
-        shell: pwsh
         run: |
-          kind load docker-image gateway:dev --name $env:KIND_CLUSTER_NAME
-          kind load docker-image auth:dev --name $env:KIND_CLUSTER_NAME
-          kind load docker-image app:dev --name $env:KIND_CLUSTER_NAME
-          kind load docker-image search:dev --name $env:KIND_CLUSTER_NAME
+          kind load docker-image gateway:dev --name "$KIND_CLUSTER_NAME"
+          kind load docker-image auth:dev --name "$KIND_CLUSTER_NAME"
+          kind load docker-image app:dev --name "$KIND_CLUSTER_NAME"
+          kind load docker-image search:dev --name "$KIND_CLUSTER_NAME"
 
       - name: Deploy to K8s
-        shell: pwsh
         run: |
-          kubectl config use-context $env:KUBE_CONTEXT
+          kubectl config use-context "$KUBE_CONTEXT"
           kubectl apply -f k8s/dev/namespace.yaml
           kubectl apply -f k8s/dev/
           kubectl rollout restart deployment/gateway deployment/auth-service deployment/app-service deployment/search-service -n dev
