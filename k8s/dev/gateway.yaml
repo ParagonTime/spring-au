@@ -35,14 +35,13 @@ metadata:
   name: gateway
   namespace: dev
 spec:
-  type: NodePort
+  type: ClusterIP
   selector:
     app: gateway
   ports:
     - name: http
       port: 8080
       targetPort: 8080
-      nodePort: 30080
     - name: management
       port: 8090
       targetPort: 8090
