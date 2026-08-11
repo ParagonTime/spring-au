@@ -5,10 +5,6 @@ on:
     branches:
       - develop
 
-env:
-  KIND_CLUSTER_NAME: local-dev
-  KUBE_CONTEXT: kind-local-dev
-
 jobs:
   build-and-deploy:
     runs-on: self-hosted
@@ -24,7 +20,7 @@ jobs:
 
       - name: Verify kind cluster
         run: |
-          kubectl config use-context "$KUBE_CONTEXT"
+          kubectl config use-context kind-local-dev
           kubectl cluster-info
           kubectl get nodes
 
@@ -40,14 +36,14 @@ jobs:
 
       - name: Load images into kind
         run: |
-          kind load docker-image gateway:dev --name "$KIND_CLUSTER_NAME"
-          kind load docker-image auth:dev --name "$KIND_CLUSTER_NAME"
-          kind load docker-image app:dev --name "$KIND_CLUSTER_NAME"
-          kind load docker-image search:dev --name "$KIND_CLUSTER_NAME"
+          kind load docker-image gateway:dev --name local-dev
+          kind load docker-image auth:dev --name local-dev
+          kind load docker-image app:dev --name local-dev
+          kind load docker-image search:dev --name local-dev
 
       - name: Deploy to K8s
         run: |
-          kubectl config use-context "$KUBE_CONTEXT"
+          kubectl config use-context kind-local-dev
           kubectl apply -f k8s/dev/namespace.yaml
           kubectl apply -f k8s/dev/
           kubectl rollout restart deployment/gateway deployment/auth-service deployment/app-service deployment/search-service -n dev
