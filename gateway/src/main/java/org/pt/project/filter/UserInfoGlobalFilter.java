@@ -20,7 +20,7 @@ import java.util.Map;
 @Component
 public class UserInfoGlobalFilter implements GlobalFilter {
 
-    // comment
+    // commentt
     @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
     private String issuerUri;
 
