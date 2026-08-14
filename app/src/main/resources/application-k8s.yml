@@ -4,11 +4,13 @@ server:
 spring:
   application:
     name: app-service
+
   datasource:
     url: ${SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
+
   jpa:
     hibernate:
       ddl-auto: none
@@ -17,10 +19,13 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
     show-sql: false
+
   liquibase:
     enabled: false
+
   kafka:
     bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS}
+
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
@@ -29,8 +34,10 @@ spring:
         linger.ms: 10
         batch.size: 16384
       acks: all
+
     admin:
       auto-create-topics: true
+
     consumer:
       group-id: tasks-group
       auto-offset-reset: earliest
@@ -47,41 +54,42 @@ app:
       task-stream: task-stream
 
 management:
+  server:
+    port: 8082
+
   tracing:
     sampling:
       probability: 1.0
     propagation:
       type: w3c
-  server:
-    port: 8082
+
+  opentelemetry:
+    resource-attributes:
+      service.name: app-service
+
+    tracing:
+      export:
+        otlp:
+          endpoint: http://otel-collector.observability.svc.cluster.local:4318/v1/traces
+
+    logging:
+      export:
+        otlp:
+          endpoint: http://otel-collector.observability.svc.cluster.local:4318/v1/logs
+
   endpoints:
     web:
       exposure:
         include: health,info,metrics,prometheus
       base-path: /actuator
+
   endpoint:
     health:
       show-details: always
-      probes:
-        enabled: true
+    probes:
+      enabled: true
     prometheus:
       enabled: true
-
-
-otel:
-  traces:
-    exporter: otlp
-  logs:
-    exporter: otlp
-  exporter:
-    otlp:
-      endpoint: http://otel-collector.observability.svc.cluster.local:4317
-      protocol: grpc
-  service:
-    name: app-service
-  resource:
-    attributes:
-      service.name: app-service
 
 logging:
   structured:

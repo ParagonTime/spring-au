@@ -11,8 +11,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-opentelemetry'
 
     implementation 'com.fasterxml.jackson.core:jackson-databind'
-
     implementation 'io.micrometer:micrometer-registry-prometheus'
+
+    runtimeOnly 'org.postgresql:postgresql'
 
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'

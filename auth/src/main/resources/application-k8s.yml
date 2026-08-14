@@ -4,17 +4,22 @@ server:
 spring:
   application:
     name: auth-service
+
   datasource:
     url: ${SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
+
   jpa:
     hibernate:
       ddl-auto: none
+
   liquibase:
     change-log: classpath:db/changelog/db-changelog-master.xml
+
   kafka:
     bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS}
+
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
@@ -23,8 +28,10 @@ spring:
         linger.ms: 10
         batch.size: 16384
       acks: all
+
     admin:
       auto-create-topics: true
+
     consumer:
       group-id: tasks-group
       auto-offset-reset: earliest
@@ -33,6 +40,7 @@ spring:
       properties:
         spring.json.trusted.packages: "*"
         spring.json.use.type.headers: false
+
   security:
     oauth2:
       resourceserver:
@@ -54,40 +62,42 @@ auth:
       user-flow: user-flow
 
 management:
+  server:
+    port: 8081
+
   tracing:
     sampling:
       probability: 1.0
     propagation:
       type: w3c
-  server:
-    port: 8081
+
+  opentelemetry:
+    resource-attributes:
+      service.name: auth-service
+
+    tracing:
+      export:
+        otlp:
+          endpoint: http://otel-collector.observability.svc.cluster.local:4318/v1/traces
+
+    logging:
+      export:
+        otlp:
+          endpoint: http://otel-collector.observability.svc.cluster.local:4318/v1/logs
+
   endpoints:
     web:
       exposure:
         include: health,info,metrics,prometheus
       base-path: /actuator
+
   endpoint:
     health:
       show-details: always
-      probes:
-        enabled: true
+    probes:
+      enabled: true
     prometheus:
       enabled: true
-
-otel:
-  traces:
-    exporter: otlp
-  logs:
-    exporter: otlp
-  exporter:
-    otlp:
-      endpoint: http://otel-collector.observability.svc.cluster.local:4317
-      protocol: grpc
-  service:
-    name: auth-service
-  resource:
-    attributes:
-      service.name: auth-service
 
 logging:
   structured:

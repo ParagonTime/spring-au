@@ -1,71 +1,82 @@
+server:
+  port: 8080
+
 spring:
   application:
     name: gateway
+
   security:
     oauth2:
       resourceserver:
         jwt:
           issuer-uri: http://keycloak:8080/realms/task-realm
+
   cloud:
     gateway:
-      routes:
-        - id: auth-public
-          uri: http://auth-service:8081
-          predicates:
-            - Path=/registration,/registration/**,/api/auth/**
-        - id: task-api
-          uri: http://app-service:8080
-          predicates:
-            - Path=/tasks,/tasks/**
-        - id: search-api
-          uri: http://search-service:8080
-          predicates:
-            - Path=/search,/search/**
-        - id: observability-service
-          uri: http://observability-service.observability.svc.cluster.local:8080
-          predicates:
-            - Path=/api/v1/metrics/**,/observability/**
+      server:
+        webflux:
+          routes:
+            - id: auth-public
+              uri: http://auth-service:8081
+              predicates:
+                - Path=/registration,/registration/**,/api/auth/**
+
+            - id: task-api
+              uri: http://app-service:8080
+              predicates:
+                - Path=/tasks,/tasks/**
+
+            - id: search-api
+              uri: http://search-service:8080
+              predicates:
+                - Path=/search,/search/**
+
+            - id: observability-service
+              uri: http://observability-service.observability.svc.cluster.local:8080
+              predicates:
+                - Path=/api/v1/metrics/**,/observability/**
 
 management:
+  server:
+    port: 8090
+
   tracing:
     sampling:
       probability: 1.0
-    propagation:
-      type: w3c
-  server:
-    port: 8090
+
+  opentelemetry:
+    resource-attributes:
+      service.name: gateway
+
+    tracing:
+      export:
+        otlp:
+          endpoint: http://otel-collector.observability.svc.cluster.local:4318/v1/traces
+
+    logging:
+      export:
+        otlp:
+          endpoint: http://otel-collector.observability.svc.cluster.local:4318/v1/logs
+
   endpoints:
     web:
       exposure:
         include: health,info,metrics,prometheus
       base-path: /actuator
+
   endpoint:
     health:
       show-details: always
       probes:
         enabled: true
+
     prometheus:
       enabled: true
-
-
-otel:
-  traces:
-    exporter: otlp
-  logs:
-    exporter: otlp
-  exporter:
-    otlp:
-      endpoint: http://otel-collector.observability.svc.cluster.local:4317
-      protocol: grpc
-  service:
-    name: gateway
-  resource:
-    attributes:
-      service.name: gateway
 
 logging:
   structured:
     format:
       console: ecs
+
   level:
     org.springframework.cloud.gateway: DEBUG

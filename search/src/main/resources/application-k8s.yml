@@ -4,11 +4,13 @@ server:
 spring:
   application:
     name: search-service
+
   datasource:
     url: ${SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
+
   jpa:
     hibernate:
       ddl-auto: none
@@ -17,8 +19,10 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
     show-sql: false
+
   liquibase:
     enabled: false
+
   kafka:
     bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS}
     consumer:
@@ -27,7 +31,7 @@ spring:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
-        spring.json.trusted.packages: "org.pt.project.event"
+        spring.json.trusted.packages: org.pt.project.event
         spring.json.use.type.headers: false
 
 search:
@@ -39,18 +43,30 @@ search:
       user-stream: user-stream
 
 management:
+  server:
+    port: 8083
+
   tracing:
     sampling:
       probability: 1.0
     propagation:
       type: w3c
-  server:
-    port: 8083
+
+  opentelemetry:
+    resource-attributes:
+      service.name: search-service
+
+    tracing:
+      export:
+        otlp:
+          endpoint: http://otel-collector.observability.svc.cluster.local:4318/v1/traces
+
   endpoints:
     web:
       exposure:
         include: health,info,metrics,prometheus
       base-path: /actuator
+
   endpoint:
     health:
       show-details: always
@@ -58,21 +74,6 @@ management:
         enabled: true
     prometheus:
       enabled: true
-
-otel:
-  traces:
-    exporter: otlp
-  logs:
-    exporter: otlp
-  exporter:
-    otlp:
-      endpoint: http://otel-collector.observability.svc.cluster.local:4317
-      protocol: grpc
-  service:
-    name: search-service
-  resource:
-    attributes:
-      service.name: search-service
 
 logging:
   structured:
