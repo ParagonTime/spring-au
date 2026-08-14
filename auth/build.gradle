@@ -1,6 +1,4 @@
 dependencies {
-    implementation platform('io.opentelemetry:opentelemetry-bom:1.64.0')
-
     implementation project(':repository')
 
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
@@ -10,17 +8,12 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
     implementation 'org.springframework.boot:spring-boot-starter-kafka'
+    implementation 'org.springframework.boot:spring-boot-starter-opentelemetry'
 
     implementation 'com.fasterxml.jackson.core:jackson-databind'
-    implementation platform('io.opentelemetry:opentelemetry-bom:1.64.0')
 
-    implementation 'io.opentelemetry:opentelemetry-sdk'
-    implementation 'io.opentelemetry:opentelemetry-exporter-otlp'
-    implementation 'io.opentelemetry:opentelemetry-sdk-extension-autoconfigure'
-
-    implementation 'io.micrometer:micrometer-tracing-bridge-otel'
     implementation 'io.micrometer:micrometer-registry-prometheus'
-    implementation 'io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0:2.30.0-alpha'
+
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
