@@ -20,7 +20,7 @@ dependencies {
 
     implementation 'io.micrometer:micrometer-tracing-bridge-otel'
     implementation 'io.micrometer:micrometer-registry-prometheus'
-
+    implementation 'io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0:2.30.0-alpha'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 

@@ -17,6 +17,7 @@ dependencies {
     implementation 'io.opentelemetry:opentelemetry-exporter-otlp'
     implementation 'io.opentelemetry:opentelemetry-sdk-extension-autoconfigure'
 
+    implementation 'io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0:2.30.0-alpha'
     implementation 'io.micrometer:micrometer-tracing-bridge-otel'
     implementation 'io.micrometer:micrometer-registry-prometheus'
 
