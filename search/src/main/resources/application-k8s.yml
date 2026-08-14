@@ -39,6 +39,11 @@ search:
       user-stream: user-stream
 
 management:
+  tracing:
+    sampling:
+      probability: 1.0
+    propagation:
+      type: w3c
   server:
     port: 8083
   endpoints:
@@ -55,6 +60,8 @@ management:
       enabled: true
 
 otel:
+  traces:
+    exporter: otlp
   logs:
     exporter: otlp
   exporter:

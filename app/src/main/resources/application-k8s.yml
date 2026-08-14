@@ -47,6 +47,11 @@ app:
       task-stream: task-stream
 
 management:
+  tracing:
+    sampling:
+      probability: 1.0
+    propagation:
+      type: w3c
   server:
     port: 8082
   endpoints:
@@ -64,6 +69,8 @@ management:
 
 
 otel:
+  traces:
+    exporter: otlp
   logs:
     exporter: otlp
   exporter:

@@ -17,6 +17,7 @@ dependencies {
     implementation 'io.opentelemetry:opentelemetry-exporter-otlp'
     implementation 'io.opentelemetry:opentelemetry-sdk-extension-autoconfigure'
 
+    implementation 'io.micrometer:micrometer-tracing-bridge-otel'
     implementation 'io.micrometer:micrometer-registry-prometheus'
 
     runtimeOnly 'org.postgresql:postgresql'
