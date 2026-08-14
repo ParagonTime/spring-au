@@ -22,7 +22,8 @@ public class GatewaySecurityConfig {
                                 "/registration/**",
                                 "/api/auth/**",
                                 "/actuator/prometheus",
-                                "/actuator/metrics"
+                                "/actuator/metrics",
+                                "/api/v1/metrics/**"
                         ).permitAll()
                         .anyExchange().authenticated()
                 )

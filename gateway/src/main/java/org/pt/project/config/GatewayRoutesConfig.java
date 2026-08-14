@@ -20,6 +20,9 @@ public class GatewayRoutesConfig {
                 .route("search-api", r -> r
                         .path("/search", "/search/**")
                         .uri("http://search-service:8080"))
+                .route("observability-service", r -> r
+                        .path("/api/v1/metrics/**")
+                        .uri("http://observability-service.observability.svc.cluster.local:8080"))
                 .build();
     }
 }

@@ -19,6 +19,10 @@ spring:
           uri: http://search-service:8080
           predicates:
             - Path=/search,/search/**
+        - id: observability-service
+          uri: http://observability-service.observability.svc.cluster.local:8080
+          predicates:
+            - Path=/api/v1/metrics/**,/observability/**
 
 management:
   server:
