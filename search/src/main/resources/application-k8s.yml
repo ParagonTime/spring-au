@@ -2,6 +2,8 @@ server:
   port: 8080
 
 spring:
+  application:
+    name: search-service
   datasource:
     url: ${SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME}
@@ -51,3 +53,21 @@ management:
         enabled: true
     prometheus:
       enabled: true
+
+otel:
+  logs:
+    exporter: otlp
+  exporter:
+    otlp:
+      endpoint: http://otel-collector.observability.svc.cluster.local:4317
+      protocol: grpc
+  service:
+    name: search-service
+  resource:
+    attributes:
+      service.name: search-service
+
+logging:
+  structured:
+    format:
+      console: ecs

@@ -2,6 +2,8 @@ server:
   port: 8081
 
 spring:
+  application:
+    name: auth-service
   datasource:
     url: ${SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME}
@@ -66,3 +68,21 @@ management:
         enabled: true
     prometheus:
       enabled: true
+
+otel:
+  logs:
+    exporter: otlp
+  exporter:
+    otlp:
+      endpoint: http://otel-collector.observability.svc.cluster.local:4317
+      protocol: grpc
+  service:
+    name: auth-service
+  resource:
+    attributes:
+      service.name: auth-service
+
+logging:
+  structured:
+    format:
+      console: ecs

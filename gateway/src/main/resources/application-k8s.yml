@@ -1,4 +1,6 @@
 spring:
+  application:
+    name: gateway
   security:
     oauth2:
       resourceserver:
@@ -40,6 +42,23 @@ management:
     prometheus:
       enabled: true
 
+
+otel:
+  logs:
+    exporter: otlp
+  exporter:
+    otlp:
+      endpoint: http://otel-collector.observability.svc.cluster.local:4317
+      protocol: grpc
+  service:
+    name: gateway
+  resource:
+    attributes:
+      service.name: gateway
+
 logging:
+  structured:
+    format:
+      console: ecs
   level:
     org.springframework.cloud.gateway: DEBUG

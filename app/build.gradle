@@ -6,6 +6,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-kafka'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'io.opentelemetry:opentelemetry-exporter-otlp-logs'
+    implementation 'io.opentelemetry:opentelemetry-sdk-logs'
+    implementation 'io.opentelemetry:opentelemetry-sdk-extension-autoconfigure'
 
     runtimeOnly 'org.postgresql:postgresql'
 
