@@ -11,8 +11,10 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-databind'
     implementation 'org.liquibase:liquibase-core'
 
-    implementation 'io.opentelemetry:opentelemetry-exporter-otlp-logs'
-    implementation 'io.opentelemetry:opentelemetry-sdk-logs'
+    implementation platform('io.opentelemetry:opentelemetry-bom:1.64.0')
+
+    implementation 'io.opentelemetry:opentelemetry-sdk'
+    implementation 'io.opentelemetry:opentelemetry-exporter-otlp'
     implementation 'io.opentelemetry:opentelemetry-sdk-extension-autoconfigure'
 
     implementation 'io.micrometer:micrometer-registry-prometheus'

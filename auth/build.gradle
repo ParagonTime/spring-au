@@ -12,9 +12,10 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-kafka'
 
     implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation platform('io.opentelemetry:opentelemetry-bom:1.64.0')
 
-    implementation 'io.opentelemetry:opentelemetry-exporter-otlp-logs'
-    implementation 'io.opentelemetry:opentelemetry-sdk-logs'
+    implementation 'io.opentelemetry:opentelemetry-sdk'
+    implementation 'io.opentelemetry:opentelemetry-exporter-otlp'
     implementation 'io.opentelemetry:opentelemetry-sdk-extension-autoconfigure'
 
     implementation 'io.micrometer:micrometer-registry-prometheus'
