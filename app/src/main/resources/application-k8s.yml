@@ -87,3 +87,6 @@ logging:
   structured:
     format:
       console: ecs
+  opentelemetry:
+    enabled: true
+
