@@ -66,11 +66,11 @@ management:
     tracing:
       export:
         otlp:
-          endpoint: http://otel-collector.dev.svc.cluster.local:4318
+          endpoint: http://otel-collector.dev.svc.cluster.local:4318/v1/traces
     logging:
       export:
         otlp:
-          endpoint: http://otel-collector.dev.svc.cluster.local:4318
+          endpoint: http://otel-collector.dev.svc.cluster.local:4318/v1/logs
 
   otlp:
     metrics:
