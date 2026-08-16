@@ -70,7 +70,7 @@ management:
     logging:
       export:
         otlp:
-          endpoint: http://otel-collector.dev.svc.cluster.local:4318/v1/logs
+          endpoint: http://otel-collector.dev.svc.cluster.local:4318
 
   otlp:
     metrics:

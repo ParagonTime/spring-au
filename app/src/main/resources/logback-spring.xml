@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- 1. Слушатель, который автоматически заберет OTel-клиент из контекста Spring Boot 4 и отдаст его логгеру -->
+    <listener class="io.opentelemetry.instrumentation.logback.v1_0.LogbackTelemetryAppenderInitializer"/>
+
+    <!-- 2. Аппендер, который упакует логи в формат OTLP (пакет для версии 2.30.0) -->
+    <appender name="OTLP_LOGS" class="io.opentelemetry.instrumentation.logback.v1_0.OpenTelemetryAppender">
+    </appender>
+
+    <!-- 3. Обычный вывод в консоль Kubernetes (текстовый) -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="OTLP_LOGS"/>
+    </root>
+</configuration>
