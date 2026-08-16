@@ -28,7 +28,7 @@ dependencies {
     implementation 'io.micrometer:micrometer-registry-prometheus'
 
     // Лог-аппендер (версия управляется вашим BOM из root проекта, явную версию ":2.30.0-alpha" можно убрать)
-    implementation 'io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0'
+    implementation 'io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0:2.30.0-alpha'
 
     runtimeOnly 'org.postgresql:postgresql'
 
