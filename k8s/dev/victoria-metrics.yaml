@@ -37,6 +37,7 @@ spec:
           args:
             - "--storageDataPath=/storage"
             - "--retentionPeriod=12"
+            - "-opentelemetry.http.listenAddr=:8428"
           ports:
             - name: http
               containerPort: 8428
