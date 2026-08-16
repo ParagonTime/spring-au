@@ -13,12 +13,22 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-kafka'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+    // Этот стартер дает базу для OTel, включая micrometer-tracing-bridge-otel
     implementation 'org.springframework.boot:spring-boot-starter-opentelemetry'
+
+    // === ДОБАВИТЬ ЭТИ ДВЕ СТРОКИ ===
+    // 1. Нужен для отправки метрик через OTLP
+    implementation 'io.micrometer:micrometer-registry-otlp'
+    // 2. Нужен для сетевого экспорта трейсов (версия подтянется автоматически из BOM)
+    implementation 'io.opentelemetry:opentelemetry-exporter-otlp'
+    // ==============================
 
     implementation 'com.fasterxml.jackson.core:jackson-databind'
     implementation 'io.micrometer:micrometer-registry-prometheus'
 
-    implementation 'io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0:2.30.0-alpha'
+    // Лог-аппендер (версия управляется вашим BOM из root проекта, явную версию ":2.30.0-alpha" можно убрать)
+    implementation 'io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0'
 
     runtimeOnly 'org.postgresql:postgresql'
 
@@ -28,6 +38,7 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.kafka:spring-kafka-test'
 }
+
 
 java {
     toolchain {
