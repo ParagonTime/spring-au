@@ -19,18 +19,12 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Setup Helm
-        uses: azure/setup-helm@v4
-        with:
-          version: 'v3.14.0'
-
       - name: Verify required tools
         shell: powershell
         run: |
           java -version
           docker version
           kubectl version --client
-          helm version
           kind version
 
       - name: Verify kind cluster
@@ -39,25 +33,6 @@ jobs:
           kubectl config use-context kind-local-dev
           kubectl cluster-info
           kubectl get nodes
-
-      - name: Install ECK operator
-        shell: powershell
-        run: |
-          helm repo add elastic https://helm.elastic.co
-          helm repo update
-
-          helm upgrade --install elastic-operator `
-            elastic/eck-operator `
-            --namespace elastic-system `
-            --create-namespace `
-            --wait `
-            --timeout 5m
-
-          kubectl wait `
-            --for=condition=Available `
-            deployment/elastic-operator `
-            -n elastic-system `
-            --timeout=5m
 
       - name: Deploy namespace
         shell: powershell
@@ -94,17 +69,10 @@ jobs:
         shell: powershell
         run: |
           kubectl apply -f k8s/dev/elasticsearch.yaml
-
-          kubectl wait `
-            --for=jsonpath="{.status.health}"=green `
-            elasticsearch/elasticsearch `
-            -n dev `
-            --timeout=10m
-
+          
           kubectl wait `
             --for=condition=Ready `
-            pod `
-            -l elasticsearch.k8s.elastic.co/cluster-name=elasticsearch `
+            pod -l app=elasticsearch `
             -n dev `
             --timeout=10m
 
@@ -141,5 +109,4 @@ jobs:
         run: |
           kubectl get pods -n dev
           kubectl get svc -n dev
-          kubectl get elasticsearch -n dev
           kubectl get deployment -n dev
