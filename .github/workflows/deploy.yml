@@ -45,6 +45,7 @@ jobs:
         run: |
           kubectl apply -f k8s/dev/namespace.yaml
           
+          kubectl apply -f k8s/dev/configmap.yaml
           kubectl apply -f k8s/dev/secrets.yaml
           
           kubectl apply -f k8s/dev/postgres.yaml
@@ -56,9 +57,9 @@ jobs:
           kubectl apply -f k8s/dev/edot-collector.yaml
           
           kubectl apply -f k8s/dev/gateway.yaml
-          kubectl apply -f k8s/dev/auth.yaml
           kubectl apply -f k8s/dev/app.yaml
           kubectl apply -f k8s/dev/search.yaml
+          kubectl apply -f k8s/dev/auth.yaml
 
       - name: Show cluster state
         shell: powershell
