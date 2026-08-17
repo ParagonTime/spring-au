@@ -54,7 +54,7 @@ jobs:
           kubectl apply -f k8s/dev/keycloak.yaml
           
           kubectl apply -f k8s/dev/elasticsearch.yaml
-          kubectl apply -f k8s/dev/edot-collector.yaml
+          kubectl apply -f k8s/dev/otel-collector.yaml
           
           kubectl apply -f k8s/dev/gateway.yaml
           kubectl apply -f k8s/dev/app.yaml

@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: edot-collector-config
+  name: otel-collector-config
   namespace: dev
 data:
   config.yaml: |
@@ -12,65 +12,89 @@ data:
             endpoint: 0.0.0.0:4317
           http:
             endpoint: 0.0.0.0:4318
+
+    processors:
+      batch:
+        timeout: 10s
+        send_batch_size: 1024
+
     exporters:
       elasticsearch:
         endpoints: ["http://elasticsearch:9200"]
+        mapping:
+          mode: otel
+        flush:
+          interval: 30s
+        retry:
+          enabled: true
+          initial_interval: 5s
+          max_interval: 30s
+          max_elapsed_time: 300s
+
       debug:
         verbosity: basic
+
     service:
       pipelines:
         traces:
           receivers: [otlp]
+          processors: [batch]
           exporters: [elasticsearch, debug]
         metrics:
           receivers: [otlp]
+          processors: [batch]
           exporters: [elasticsearch, debug]
         logs:
           receivers: [otlp]
+          processors: [batch]
           exporters: [elasticsearch, debug]
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: edot-collector
+  name: otel-collector
   namespace: dev
+  labels:
+    app: otel-collector
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: edot-collector
+      app: otel-collector
   template:
     metadata:
       labels:
-        app: edot-collector
+        app: otel-collector
     spec:
       containers:
-        - name: edot-collector
+        - name: otel-collector
           image: otel/opentelemetry-collector-contrib:0.136.0
-          args: ["--config=/etc/edot/config.yaml"]
+          args: ["--config=/etc/otel/config.yaml"]
           ports:
-            - containerPort: 4317
-            - containerPort: 4318
+            - name: otlp-grpc
+              containerPort: 4317
+            - name: otlp-http
+              containerPort: 4318
           volumeMounts:
             - name: config
-              mountPath: /etc/edot
+              mountPath: /etc/otel
       volumes:
         - name: config
           configMap:
-            name: edot-collector-config
+            name: otel-collector-config
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: edot-collector
+  name: otel-collector
   namespace: dev
 spec:
   selector:
-    app: edot-collector
+    app: otel-collector
   ports:
-    - port: 4317
+    - name: otlp-grpc
+      port: 4317
       targetPort: 4317
-      name: otlp-grpc
-    - port: 4318
+    - name: otlp-http
+      port: 4318
       targetPort: 4318
-      name: otlp-http
