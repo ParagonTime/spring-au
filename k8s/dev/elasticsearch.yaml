@@ -3,25 +3,18 @@ kind: Service
 metadata:
   name: elasticsearch
   namespace: dev
-  labels:
-    app: elasticsearch
 spec:
   selector:
     app: elasticsearch
   ports:
-    - name: http
-      port: 9200
+    - port: 9200
       targetPort: 9200
-      protocol: TCP
-  type: ClusterIP
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: elasticsearch
   namespace: dev
-  labels:
-    app: elasticsearch
 spec:
   replicas: 1
   selector:
@@ -34,43 +27,13 @@ spec:
     spec:
       containers:
         - name: elasticsearch
-          image: docker.elastic.co/elasticsearch/elasticsearch:9.4.2
+          image: docker.elastic.co/elasticsearch/elasticsearch:8.12.0
           env:
             - name: discovery.type
               value: single-node
             - name: xpack.security.enabled
               value: "false"
-            - name: xpack.security.http.ssl.enabled
-              value: "false"
-            - name: xpack.security.transport.ssl.enabled
-              value: "false"
             - name: ES_JAVA_OPTS
-              value: "-Xms512m -Xmx512m"
-            - name: node.store.allow_mmap
-              value: "false"
+              value: "-Xms256m -Xmx256m"
           ports:
             - containerPort: 9200
-              name: http
-          resources:
-            requests:
-              cpu: 500m
-              memory: 1Gi
-            limits:
-              cpu: 2
-              memory: 2Gi
-          readinessProbe:
-            httpGet:
-              path: /_cluster/health
-              port: 9200
-            initialDelaySeconds: 30
-            periodSeconds: 10
-            timeoutSeconds: 5
-            failureThreshold: 10
-          livenessProbe:
-            httpGet:
-              path: /_cluster/health
-              port: 9200
-            initialDelaySeconds: 60
-            periodSeconds: 20
-            timeoutSeconds: 5
-            failureThreshold: 5
