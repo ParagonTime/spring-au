@@ -40,17 +40,21 @@ jobs:
           kind load docker-image app:dev --name local-dev
           kind load docker-image search:dev --name local-dev
 
-      - name: Deploy infrastructure
+      - name: Deploy all infrastructure and applications
         shell: powershell
         run: |
           kubectl apply -f k8s/dev/namespace.yaml
+          
+          kubectl apply -f k8s/dev/secrets.yaml
+          
+          kubectl apply -f k8s/dev/postgres.yaml
+          kubectl apply -f k8s/dev/kafka.yaml
+          
+          kubectl apply -f k8s/dev/keycloak.yaml
+          
           kubectl apply -f k8s/dev/elasticsearch.yaml
           kubectl apply -f k8s/dev/edot-collector.yaml
-          kubectl apply -f k8s/dev/secrets.yaml
-
-      - name: Deploy applications
-        shell: powershell
-        run: |
+          
           kubectl apply -f k8s/dev/gateway.yaml
           kubectl apply -f k8s/dev/auth.yaml
           kubectl apply -f k8s/dev/app.yaml
@@ -59,5 +63,14 @@ jobs:
       - name: Show cluster state
         shell: powershell
         run: |
+          Write-Host "=== Pods ==="
           kubectl get pods -n dev
+          
+          Write-Host "=== Services ==="
           kubectl get svc -n dev
+          
+          Write-Host "=== ConfigMaps ==="
+          kubectl get configmaps -n dev
+          
+          Write-Host "=== Secrets ==="
+          kubectl get secrets -n dev
