@@ -8,6 +8,7 @@ on:
 jobs:
   build-and-deploy:
     runs-on: self-hosted
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -18,38 +19,122 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
+      - name: Verify required tools
+        shell: powershell
+        run: |
+          java -version
+          docker version
+          kubectl version --client
+          helm version
+          kind version
+
       - name: Verify kind cluster
+        shell: powershell
         run: |
           kubectl config use-context kind-local-dev
           kubectl cluster-info
           kubectl get nodes
 
-      - name: Build with Gradle
-        run: ./gradlew bootJar
+      - name: Install ECK operator
+        shell: powershell
+        run: |
+          helm repo add elastic https://helm.elastic.co
+          helm repo update
+
+          helm upgrade --install elastic-operator `
+            elastic/eck-operator `
+            --namespace elastic-system `
+            --create-namespace `
+            --wait `
+            --timeout 5m
+
+          kubectl wait `
+            --for=condition=Available `
+            deployment/elastic-operator `
+            -n elastic-system `
+            --timeout=5m
+
+      - name: Deploy namespace
+        shell: powershell
+        run: |
+          kubectl apply -f k8s/dev/namespace.yaml
+
+      - name: Build all modules
+        shell: powershell
+        run: |
+          .\gradlew.bat clean bootJar
 
       - name: Build Docker images
+        shell: powershell
         run: |
           docker build -t gateway:dev ./gateway
           docker build -t auth:dev ./auth
           docker build -t app:dev ./app
           docker build -t search:dev ./search
 
-      - name: Load images into kind
+      - name: Load all images into kind
+        shell: powershell
         run: |
           kind load docker-image gateway:dev --name local-dev
           kind load docker-image auth:dev --name local-dev
           kind load docker-image app:dev --name local-dev
           kind load docker-image search:dev --name local-dev
 
-      - name: Deploy to K8s
+      - name: Deploy application secrets
+        shell: powershell
         run: |
-          kubectl config use-context kind-local-dev
-          kubectl apply -f k8s/dev/namespace.yaml
-          kubectl apply -f k8s/dev/
-          kubectl rollout restart deployment/gateway deployment/auth-service deployment/app-service deployment/search-service -n dev
+          kubectl apply -f k8s/dev/secrets.yaml
+
+      - name: Deploy Elasticsearch
+        shell: powershell
+        run: |
+          kubectl apply -f k8s/dev/elasticsearch.yaml
+
+          kubectl wait `
+            --for=jsonpath="{.status.health}"=green `
+            elasticsearch/elasticsearch `
+            -n dev `
+            --timeout=10m
+
+          kubectl wait `
+            --for=condition=Ready `
+            pod `
+            -l elasticsearch.k8s.elastic.co/cluster-name=elasticsearch `
+            -n dev `
+            --timeout=10m
+
+      - name: Deploy EDOT Collector
+        shell: powershell
+        run: |
+          kubectl apply -f k8s/dev/edot-collector.yaml
+
+          kubectl rollout status `
+            deployment/edot-collector `
+            -n dev `
+            --timeout=5m
+
+      - name: Deploy all business services
+        shell: powershell
+        run: |
+          kubectl apply -f k8s/dev/gateway.yaml
+          kubectl apply -f k8s/dev/auth.yaml
+          kubectl apply -f k8s/dev/app.yaml
+          kubectl apply -f k8s/dev/search.yaml
+
+          kubectl rollout restart deployment/gateway -n dev
+          kubectl rollout restart deployment/auth-service -n dev
+          kubectl rollout restart deployment/app-service -n dev
+          kubectl rollout restart deployment/search-service -n dev
+
           kubectl rollout status deployment/gateway -n dev --timeout=180s
           kubectl rollout status deployment/auth-service -n dev --timeout=180s
           kubectl rollout status deployment/app-service -n dev --timeout=180s
           kubectl rollout status deployment/search-service -n dev --timeout=180s
+
+      - name: Show cluster state
+        shell: powershell
+        run: |
           kubectl get pods -n dev
-          kubectl get ingress -n dev
+          kubectl get svc -n dev
+          kubectl get elasticsearch -n dev
+          kubectl get deployment -n dev
