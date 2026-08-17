@@ -49,28 +49,29 @@ app:
 management:
   server:
     port: 8082
+
   endpoints:
     web:
       exposure:
         include: health,info,metrics,prometheus
       base-path: /actuator
+
   endpoint:
     health:
       show-details: always
       probes:
         enabled: true
-    prometheus:
-      enabled: true
 
   opentelemetry:
     tracing:
       export:
         otlp:
           endpoint: http://otel-collector.dev.svc.cluster.local:4318/v1/traces
+
     logging:
       export:
         otlp:
-          endpoint: http://otel-collector.dev.svc.cluster.local:4318
+          endpoint: http://otel-collector.dev.svc.cluster.local:4318/v1/logs
 
   otlp:
     metrics:
@@ -80,13 +81,3 @@ management:
   tracing:
     sampling:
       probability: 1.0
-    propagation:
-      type: w3c
-
-logging:
-  structured:
-    format:
-      console: ecs
-  opentelemetry:
-    enabled: true
-
