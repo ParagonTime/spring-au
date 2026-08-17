@@ -60,6 +60,8 @@ jobs:
           kubectl apply -f k8s/dev/app.yaml
           kubectl apply -f k8s/dev/search.yaml
           kubectl apply -f k8s/dev/auth.yaml
+          
+          kubectl apply -f k8s/dev/gateway-ingress.yaml
 
       - name: Show cluster state
         shell: powershell
