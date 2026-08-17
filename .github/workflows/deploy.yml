@@ -44,6 +44,33 @@ jobs:
         run: |
           .\gradlew.bat clean bootJar
 
+      - name: Download EDOT Java Agents
+        shell: powershell
+        run: |
+          $agentUrl = "https://github.com/elastic/elastic-distribution-opentelemetry/releases/latest/download/edot-javaagent.jar"
+          
+          # Список сервисов, для которых нужен агент
+          $services = @("gateway", "auth", "app", "search")
+          
+          foreach ($service in $services) {
+            Write-Host "Downloading EDOT Java Agent for $service..."
+          
+            $agentPath = Join-Path $service "edot-javaagent.jar"
+          
+            # Скачивание с проверкой
+            Invoke-WebRequest -Uri $agentUrl -OutFile $agentPath -UseBasicParsing
+          
+            # Проверка размера файла (должен быть > 10MB)
+            $fileSize = (Get-Item $agentPath).Length
+            Write-Host "$service agent size: $([math]::Round($fileSize / 1MB, 2)) MB"
+          
+            if ($fileSize -lt 10000000) {
+              throw "Downloaded EDOT Java Agent for $service is too small ($fileSize bytes). Expected ~20MB"
+            }
+          }
+          
+          Write-Host "All EDOT Java Agents downloaded successfully"
+
       - name: Build Docker images
         shell: powershell
         run: |
