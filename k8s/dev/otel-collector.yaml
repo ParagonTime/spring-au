@@ -14,17 +14,23 @@ data:
             endpoint: 0.0.0.0:4318
 
     processors:
+      memory_limiter:
+        check_interval: 1s
+        limit_mib: 512
+        spike_limit_mib: 128
+
       batch:
         timeout: 10s
-        send_batch_size: 1024
+        send_batch_size: 512
 
     exporters:
       elasticsearch:
-        endpoints: ["http://elasticsearch:9200"]
+        endpoints:
+          - http://elasticsearch.dev.svc.cluster.local:9200
         mapping:
           mode: otel
         flush:
-          interval: 30s
+          interval: 10s
         retry:
           enabled: true
           initial_interval: 5s
@@ -36,17 +42,35 @@ data:
     service:
       pipelines:
         traces:
-          receivers: [otlp]
-          processors: [batch]
-          exporters: [elasticsearch, debug]
+          receivers:
+            - otlp
+          processors:
+            - memory_limiter
+            - batch
+          exporters:
+            - elasticsearch
+            - debug
+
         metrics:
-          receivers: [otlp]
-          processors: [batch]
-          exporters: [elasticsearch, debug]
+          receivers:
+            - otlp
+          processors:
+            - memory_limiter
+            - batch
+          exporters:
+            - elasticsearch
+            - debug
+
         logs:
-          receivers: [otlp]
-          processors: [batch]
-          exporters: [elasticsearch, debug]
+          receivers:
+            - otlp
+          processors:
+            - memory_limiter
+            - batch
+          exporters:
+            - elasticsearch
+            - debug
+
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -68,32 +92,64 @@ spec:
       containers:
         - name: otel-collector
           image: otel/opentelemetry-collector-contrib:0.136.0
-          args: ["--config=/etc/otel/config.yaml"]
+          imagePullPolicy: IfNotPresent
+          args:
+            - "--config=/etc/otel/config.yaml"
           ports:
             - name: otlp-grpc
               containerPort: 4317
+              protocol: TCP
             - name: otlp-http
               containerPort: 4318
+              protocol: TCP
+          readinessProbe:
+            tcpSocket:
+              port: otlp-http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 6
+          livenessProbe:
+            tcpSocket:
+              port: otlp-http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 768Mi
           volumeMounts:
             - name: config
               mountPath: /etc/otel
+              readOnly: true
       volumes:
         - name: config
           configMap:
             name: otel-collector-config
+
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: otel-collector
   namespace: dev
+  labels:
+    app: otel-collector
 spec:
   selector:
     app: otel-collector
   ports:
     - name: otlp-grpc
       port: 4317
-      targetPort: 4317
+      targetPort: otlp-grpc
+      protocol: TCP
     - name: otlp-http
       port: 4318
-      targetPort: 4318
+      targetPort: otlp-http
+      protocol: TCP
+  type: ClusterIP

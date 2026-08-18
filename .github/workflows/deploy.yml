@@ -19,6 +19,21 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
+      - name: Verify required tools
+        shell: powershell
+        run: |
+          java -version
+          docker version
+          kubectl version --client
+          kind version
+
+      - name: Verify kind cluster
+        shell: powershell
+        run: |
+          kubectl config use-context kind-local-dev
+          kubectl cluster-info
+          kubectl get nodes
+
       - name: Build all modules
         shell: powershell
         run: |
@@ -40,27 +55,81 @@ jobs:
           kind load docker-image app:dev --name local-dev
           kind load docker-image search:dev --name local-dev
 
-      - name: Deploy all infrastructure and applications
+      - name: Deploy namespace
         shell: powershell
         run: |
           kubectl apply -f k8s/dev/namespace.yaml
-          
+
+      - name: Deploy application configuration
+        shell: powershell
+        run: |
           kubectl apply -f k8s/dev/configmap.yaml
           kubectl apply -f k8s/dev/secrets.yaml
-          
+
+      - name: Deploy infrastructure
+        shell: powershell
+        run: |
           kubectl apply -f k8s/dev/postgres.yaml
           kubectl apply -f k8s/dev/kafka.yaml
-          
           kubectl apply -f k8s/dev/keycloak.yaml
-          
+
+      - name: Deploy Elasticsearch
+        shell: powershell
+        run: |
           kubectl apply -f k8s/dev/elasticsearch.yaml
+
+          kubectl rollout status `
+            deployment/elasticsearch `
+            -n dev `
+            --timeout=10m
+
+          kubectl wait `
+            --for=condition=Ready `
+            pod `
+            -l app=elasticsearch `
+            -n dev `
+            --timeout=10m
+
+      - name: Deploy OTel Collector
+        shell: powershell
+        run: |
           kubectl apply -f k8s/dev/otel-collector.yaml
-          
+
+          kubectl rollout status `
+            deployment/otel-collector `
+            -n dev `
+            --timeout=5m
+
+      - name: Deploy business applications
+        shell: powershell
+        run: |
           kubectl apply -f k8s/dev/gateway.yaml
           kubectl apply -f k8s/dev/app.yaml
           kubectl apply -f k8s/dev/search.yaml
           kubectl apply -f k8s/dev/auth.yaml
-          
+
+      - name: Wait for business applications
+        shell: powershell
+        run: |
+          kubectl rollout status deployment/gateway `
+            -n dev `
+            --timeout=180s
+
+          kubectl rollout status deployment/app-service `
+            -n dev `
+            --timeout=180s
+
+          kubectl rollout status deployment/search-service `
+            -n dev `
+            --timeout=180s
+
+          kubectl rollout status deployment/auth-service `
+            -n dev `
+            --timeout=180s
+
+      - name: Deploy ingress
+        shell: powershell
+        run: |
           kubectl apply -f k8s/dev/gateway-ingress.yaml
 
       - name: Show cluster state
@@ -68,12 +137,15 @@ jobs:
         run: |
           Write-Host "=== Pods ==="
           kubectl get pods -n dev
-          
+
           Write-Host "=== Services ==="
           kubectl get svc -n dev
-          
-          Write-Host "=== ConfigMaps ==="
-          kubectl get configmaps -n dev
-          
-          Write-Host "=== Secrets ==="
-          kubectl get secrets -n dev
+
+          Write-Host "=== Deployments ==="
+          kubectl get deployments -n dev
+
+          Write-Host "=== Elasticsearch ==="
+          kubectl get deployment elasticsearch -n dev
+
+          Write-Host "=== Ingress ==="
+          kubectl get ingress -n dev

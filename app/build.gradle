@@ -25,7 +25,6 @@ dependencies {
     testImplementation 'org.springframework.kafka:spring-kafka-test'
 }
 
-
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
