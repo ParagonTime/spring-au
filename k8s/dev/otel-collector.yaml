@@ -6,6 +6,19 @@ metadata:
 data:
   config.yaml: |
     receivers:
+      filelog:
+        include:
+          - /var/log/pods/*/*/*.log
+        exclude:
+          - /var/log/pods/*/otel-collector/*.log
+        start_at: end
+        include_file_path: true
+        include_file_name: false
+
+        operators:
+          - type: container
+            id: container-parser
+
       otlp:
         protocols:
           grpc:
@@ -18,6 +31,17 @@ data:
         check_interval: 1s
         limit_mib: 512
         spike_limit_mib: 128
+
+      k8sattributes:
+        auth_type: serviceAccount
+        passthrough: false
+        extract:
+          metadata:
+            - k8s.namespace.name
+            - k8s.pod.name
+            - k8s.pod.uid
+            - k8s.container.name
+            - k8s.node.name
 
       batch:
         timeout: 10s
@@ -41,6 +65,18 @@ data:
 
     service:
       pipelines:
+        logs:
+          receivers:
+            - filelog
+            - otlp
+          processors:
+            - memory_limiter
+            - k8sattributes
+            - batch
+          exporters:
+            - elasticsearch
+            - debug
+
         traces:
           receivers:
             - otlp
@@ -49,7 +85,6 @@ data:
             - batch
           exporters:
             - elasticsearch
-            - debug
 
         metrics:
           receivers:
@@ -59,28 +94,53 @@ data:
             - batch
           exporters:
             - elasticsearch
-            - debug
 
-        logs:
-          receivers:
-            - otlp
-          processors:
-            - memory_limiter
-            - batch
-          exporters:
-            - elasticsearch
-            - debug
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: otel-collector
+  namespace: dev
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: otel-collector
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+      - namespaces
+    verbs:
+      - get
+      - list
+      - watch
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: otel-collector
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: otel-collector
+subjects:
+  - kind: ServiceAccount
+    name: otel-collector
+    namespace: dev
 
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: DaemonSet
 metadata:
   name: otel-collector
   namespace: dev
   labels:
     app: otel-collector
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app: otel-collector
@@ -89,12 +149,15 @@ spec:
       labels:
         app: otel-collector
     spec:
+      serviceAccountName: otel-collector
+
       containers:
         - name: otel-collector
           image: otel/opentelemetry-collector-contrib:0.136.0
           imagePullPolicy: IfNotPresent
           args:
             - "--config=/etc/otel/config.yaml"
+
           ports:
             - name: otlp-grpc
               containerPort: 4317
@@ -102,6 +165,20 @@ spec:
             - name: otlp-http
               containerPort: 4318
               protocol: TCP
+
+          volumeMounts:
+            - name: config
+              mountPath: /etc/otel
+              readOnly: true
+
+            - name: varlogpods
+              mountPath: /var/log/pods
+              readOnly: true
+
+            - name: varlogcontainers
+              mountPath: /var/log/containers
+              readOnly: true
+
           readinessProbe:
             tcpSocket:
               port: otlp-http
@@ -109,13 +186,15 @@ spec:
             periodSeconds: 10
             timeoutSeconds: 3
             failureThreshold: 6
+
           livenessProbe:
             tcpSocket:
               port: otlp-http
             initialDelaySeconds: 15
             periodSeconds: 20
             timeoutSeconds: 3
-            failureThreshold: 3
+            failureThreshold: 6
+
           resources:
             requests:
               cpu: 100m
@@ -123,14 +202,21 @@ spec:
             limits:
               cpu: 500m
               memory: 768Mi
-          volumeMounts:
-            - name: config
-              mountPath: /etc/otel
-              readOnly: true
+
       volumes:
         - name: config
           configMap:
             name: otel-collector-config
+
+        - name: varlogpods
+          hostPath:
+            path: /var/log/pods
+            type: Directory
+
+        - name: varlogcontainers
+          hostPath:
+            path: /var/log/containers
+            type: DirectoryOrCreate
 
 ---
 apiVersion: v1

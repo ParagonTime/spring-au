@@ -42,10 +42,10 @@ jobs:
       - name: Build Docker images
         shell: powershell
         run: |
-          docker build -t gateway:dev ./gateway
-          docker build -t auth:dev ./auth
-          docker build -t app:dev ./app
-          docker build -t search:dev ./search
+          docker build --no-cache -t gateway:dev ./gateway
+          docker build --no-cache -t auth:dev ./auth
+          docker build --no-cache -t app:dev ./app
+          docker build --no-cache -t search:dev ./search
 
       - name: Load images into kind
         shell: powershell
@@ -96,7 +96,7 @@ jobs:
           kubectl apply -f k8s/dev/otel-collector.yaml
 
           kubectl rollout status `
-            deployment/otel-collector `
+            daemonset/otel-collector `
             -n dev `
             --timeout=5m
 
@@ -136,7 +136,7 @@ jobs:
         shell: powershell
         run: |
           Write-Host "=== Pods ==="
-          kubectl get pods -n dev
+          kubectl get pods -n dev -o wide
 
           Write-Host "=== Services ==="
           kubectl get svc -n dev
@@ -144,8 +144,14 @@ jobs:
           Write-Host "=== Deployments ==="
           kubectl get deployments -n dev
 
+          Write-Host "=== DaemonSets ==="
+          kubectl get daemonsets -n dev
+
           Write-Host "=== Elasticsearch ==="
           kubectl get deployment elasticsearch -n dev
 
           Write-Host "=== Ingress ==="
           kubectl get ingress -n dev
+
+          Write-Host "=== Recent Collector logs ==="
+          kubectl logs -n dev -l app=otel-collector --since=2m --tail=30
