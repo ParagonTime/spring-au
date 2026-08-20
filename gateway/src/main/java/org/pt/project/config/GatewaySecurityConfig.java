@@ -23,7 +23,11 @@ public class GatewaySecurityConfig {
                                 "/registration",
                                 "/registration/**",
                                 "/api/auth/**",
+
                                 "/api/v1/observability/**",
+
+                                "/actuator/health",
+                                "/actuator/health/**",
                                 "/actuator/prometheus",
                                 "/actuator/metrics"
                         ).permitAll()
