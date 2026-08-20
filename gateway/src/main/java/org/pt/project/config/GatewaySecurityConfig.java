@@ -13,7 +13,9 @@ import org.springframework.security.web.server.firewall.StrictServerWebExchangeF
 public class GatewaySecurityConfig {
 
     @Bean
-    public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
+    public SecurityWebFilterChain securityWebFilterChain(
+            ServerHttpSecurity http
+    ) {
         http
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(exchanges -> exchanges
@@ -21,23 +23,27 @@ public class GatewaySecurityConfig {
                                 "/registration",
                                 "/registration/**",
                                 "/api/auth/**",
+                                "/api/v1/observability/**",
                                 "/actuator/prometheus",
-                                "/actuator/metrics",
-                                "/api/v1/metrics/**"
+                                "/actuator/metrics"
                         ).permitAll()
                         .anyExchange().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> {})
                 );
+
         return http.build();
     }
 
     @Bean
     public ServerWebExchangeFirewall serverWebExchangeFirewall() {
-        StrictServerWebExchangeFirewall firewall = new StrictServerWebExchangeFirewall();
+        StrictServerWebExchangeFirewall firewall =
+                new StrictServerWebExchangeFirewall();
+
         firewall.setAllowedHeaderNames(name -> true);
         firewall.setAllowedHeaderValues(value -> true);
+
         return firewall;
     }
 }

@@ -9,20 +9,41 @@ import org.springframework.context.annotation.Configuration;
 public class GatewayRoutesConfig {
 
     @Bean
-    public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
+    public RouteLocator customRouteLocator(
+            RouteLocatorBuilder builder
+    ) {
         return builder.routes()
                 .route("auth-public", r -> r
-                        .path("/registration", "/registration/**", "/api/auth/**", "/users", "/users/**")
+                        .path(
+                                "/registration",
+                                "/registration/**",
+                                "/api/auth/**",
+                                "/users",
+                                "/users/**"
+                        )
                         .uri("http://auth-service:8081"))
+
                 .route("task-api", r -> r
                         .path("/tasks", "/tasks/**")
                         .uri("http://app-service:8080"))
+
                 .route("search-api", r -> r
                         .path("/search", "/search/**")
                         .uri("http://search-service:8080"))
+
                 .route("observability-service", r -> r
-                        .path("/api/v1/metrics/**")
-                        .uri("http://observability-service.observability.svc.cluster.local:8080"))
+                        .path("/api/v1/observability/**")
+                        .filters(f -> f
+                                .rewritePath(
+                                        "/api/v1/observability/(?<segment>.*)",
+                                        "/api/observability/${segment}"
+                                )
+                        )
+                        .uri(
+                                "http://observability-service" +
+                                        ".observability.svc.cluster.local:8080"
+                        ))
+
                 .build();
     }
 }

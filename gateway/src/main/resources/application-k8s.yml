@@ -34,7 +34,9 @@ spring:
             - id: observability-service
               uri: http://observability-service.observability.svc.cluster.local:8080
               predicates:
-                - Path=/api/v1/metrics/**,/observability/**
+                - Path=/api/v1/observability/**
+              filters:
+                - RewritePath=/api/v1/observability/(?<segment>.*), /api/observability/$\{segment}
 
 management:
   server:
@@ -43,20 +45,6 @@ management:
   tracing:
     sampling:
       probability: 1.0
-
-  opentelemetry:
-    resource-attributes:
-      service.name: gateway
-
-    tracing:
-      export:
-        otlp:
-          endpoint: http://otel-collector.observability.svc.cluster.local:4318/v1/traces
-
-    logging:
-      export:
-        otlp:
-          endpoint: http://otel-collector.observability.svc.cluster.local:4318/v1/logs
 
   endpoints:
     web:
