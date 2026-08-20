@@ -44,7 +44,7 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
 
-          $tag = "${env:GITHUB_SHA}"
+          $tag = "dev"
 
           docker build --no-cache -t "gateway:$tag" ./gateway
           docker build --no-cache -t "auth:$tag" ./auth
@@ -58,10 +58,10 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
 
-          kind load docker-image "gateway:$env:IMAGE_TAG" --name local-dev
-          kind load docker-image "auth:$env:IMAGE_TAG" --name local-dev
-          kind load docker-image "app:$env:IMAGE_TAG" --name local-dev
-          kind load docker-image "search:$env:IMAGE_TAG" --name local-dev
+          kind load docker-image "gateway:dev" --name local-dev
+          kind load docker-image "auth:dev" --name local-dev
+          kind load docker-image "app:dev" --name local-dev
+          kind load docker-image "search:dev" --name local-dev
 
       - name: Deploy namespace
         shell: powershell
@@ -118,21 +118,10 @@ jobs:
           kubectl apply -f k8s/dev/search.yaml
           kubectl apply -f k8s/dev/auth.yaml
 
-          kubectl set image deployment/gateway `
-            gateway="gateway:$env:IMAGE_TAG" `
-            -n dev
-
-          kubectl set image deployment/app-service `
-            app-service="app:$env:IMAGE_TAG" `
-            -n dev
-
-          kubectl set image deployment/search-service `
-            search-service="search:$env:IMAGE_TAG" `
-            -n dev
-
-          kubectl set image deployment/auth-service `
-            auth-service="auth:$env:IMAGE_TAG" `
-            -n dev
+          kubectl set image deployment/gateway gateway="gateway:dev" -n dev
+          kubectl set image deployment/app-service app-service="app:dev" -n dev
+          kubectl set image deployment/search-service search-service="search:dev" -n dev
+          kubectl set image deployment/auth-service auth-service="auth:dev" -n dev
 
       - name: Wait for business applications
         shell: powershell
