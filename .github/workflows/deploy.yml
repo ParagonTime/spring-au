@@ -42,18 +42,26 @@ jobs:
       - name: Build Docker images
         shell: powershell
         run: |
-          docker build --no-cache -t gateway:dev ./gateway
-          docker build --no-cache -t auth:dev ./auth
-          docker build --no-cache -t app:dev ./app
-          docker build --no-cache -t search:dev ./search
+          $ErrorActionPreference = "Stop"
+
+          $tag = "${env:GITHUB_SHA}"
+
+          docker build --no-cache -t "gateway:$tag" ./gateway
+          docker build --no-cache -t "auth:$tag" ./auth
+          docker build --no-cache -t "app:$tag" ./app
+          docker build --no-cache -t "search:$tag" ./search
+
+          "IMAGE_TAG=$tag" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: Load images into kind
         shell: powershell
         run: |
-          kind load docker-image gateway:dev --name local-dev
-          kind load docker-image auth:dev --name local-dev
-          kind load docker-image app:dev --name local-dev
-          kind load docker-image search:dev --name local-dev
+          $ErrorActionPreference = "Stop"
+
+          kind load docker-image "gateway:$env:IMAGE_TAG" --name local-dev
+          kind load docker-image "auth:$env:IMAGE_TAG" --name local-dev
+          kind load docker-image "app:$env:IMAGE_TAG" --name local-dev
+          kind load docker-image "search:$env:IMAGE_TAG" --name local-dev
 
       - name: Deploy namespace
         shell: powershell
@@ -103,10 +111,28 @@ jobs:
       - name: Deploy business applications
         shell: powershell
         run: |
+          $ErrorActionPreference = "Stop"
+
           kubectl apply -f k8s/dev/gateway.yaml
           kubectl apply -f k8s/dev/app.yaml
           kubectl apply -f k8s/dev/search.yaml
           kubectl apply -f k8s/dev/auth.yaml
+
+          kubectl set image deployment/gateway `
+            gateway="gateway:$env:IMAGE_TAG" `
+            -n dev
+
+          kubectl set image deployment/app-service `
+            app-service="app:$env:IMAGE_TAG" `
+            -n dev
+
+          kubectl set image deployment/search-service `
+            search-service="search:$env:IMAGE_TAG" `
+            -n dev
+
+          kubectl set image deployment/auth-service `
+            auth-service="auth:$env:IMAGE_TAG" `
+            -n dev
 
       - name: Wait for business applications
         shell: powershell
