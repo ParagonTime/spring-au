@@ -36,8 +36,7 @@ public class GatewayRoutesConfig {
                         .uri(
                                 "http://observability-service" +
                                         ".observability.svc.cluster.local:8080"
-                        )
-                )
+                        ))
 
                 .build();
     }
