@@ -20,50 +20,102 @@ import java.util.Map;
 @Component
 public class UserInfoGlobalFilter implements GlobalFilter {
 
-    // commentt
-    @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
-    private String issuerUri;
+    private static final String OBSERVABILITY_PATH =
+            "/api/v1/observability";
 
     private final WebClient webClient = WebClient.create();
 
+    @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
+    private String issuerUri;
+
     @Override
-    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        String path = exchange.getRequest().getURI().getPath();
-        if (path.startsWith("/registration") || path.startsWith("/api/auth")) {
+    public Mono<Void> filter(
+            ServerWebExchange exchange,
+            GatewayFilterChain chain
+    ) {
+        String path = exchange.getRequest()
+                .getURI()
+                .getPath();
+
+        if (isPublicPath(path)) {
             return chain.filter(exchange);
         }
 
         return ReactiveSecurityContextHolder.getContext()
                 .map(SecurityContext::getAuthentication)
                 .filter(Authentication::isAuthenticated)
-                .map(auth -> (Jwt) auth.getPrincipal())
-                .flatMap(jwt -> fetchUserInfo(jwt.getTokenValue()))
+                .filter(authentication ->
+                        authentication.getPrincipal() instanceof Jwt
+                )
+                .map(authentication ->
+                        (Jwt) authentication.getPrincipal()
+                )
+                .flatMap(jwt ->
+                        fetchUserInfo(jwt.getTokenValue())
+                )
                 .flatMap(userInfo -> {
-                    String userId = String.valueOf(userInfo.get("sub"));
-                    Map<String, Object> realmAccess = (Map<String, Object>) userInfo.get("realm_access");
-                    String rolesString;
-                    if (realmAccess != null && realmAccess.get("roles") instanceof List) {
-                        List<String> roles = (List<String>) realmAccess.get("roles");
-                        rolesString = String.join(",", roles);
-                    } else {
-                        rolesString = "";
-                    }
+                    String userId = String.valueOf(
+                            userInfo.get("sub")
+                    );
 
-                    ServerWebExchange modifiedExchange = exchange.mutate()
-                            .request(r -> r.headers(headers -> {
-                                headers.set("user-id", userId);
-                                headers.set("user-roles", rolesString);
-                            }))
-                            .build();
+                    String rolesString = extractRoles(userInfo);
+
+                    ServerWebExchange modifiedExchange =
+                            exchange.mutate()
+                                    .request(request -> request.headers(
+                                            headers -> {
+                                                headers.set(
+                                                        "user-id",
+                                                        userId
+                                                );
+                                                headers.set(
+                                                        "user-roles",
+                                                        rolesString
+                                                );
+                                            }
+                                    ))
+                                    .build();
+
                     return chain.filter(modifiedExchange);
                 })
                 .switchIfEmpty(chain.filter(exchange));
     }
 
+    private boolean isPublicPath(String path) {
+        return path.equals("/registration")
+                || path.startsWith("/registration/")
+                || path.equals("/api/auth")
+                || path.startsWith("/api/auth/")
+                || path.equals(OBSERVABILITY_PATH)
+                || path.startsWith(OBSERVABILITY_PATH + "/");
+    }
+
+    private String extractRoles(Map<String, Object> userInfo) {
+        Object realmAccessObject = userInfo.get("realm_access");
+
+        if (!(realmAccessObject instanceof Map<?, ?> realmAccess)) {
+            return "";
+        }
+
+        Object rolesObject = realmAccess.get("roles");
+
+        if (!(rolesObject instanceof List<?> roles)) {
+            return "";
+        }
+
+        return roles.stream()
+                .map(String::valueOf)
+                .reduce((left, right) -> left + "," + right)
+                .orElse("");
+    }
+
     private Mono<Map> fetchUserInfo(String token) {
         return webClient.get()
                 .uri(issuerUri + "/protocol/openid-connect/userinfo")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                .header(
+                        HttpHeaders.AUTHORIZATION,
+                        "Bearer " + token
+                )
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
                 .bodyToMono(Map.class);

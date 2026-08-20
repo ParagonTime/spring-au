@@ -16,16 +16,14 @@ public class GatewaySecurityConfig {
     public SecurityWebFilterChain securityWebFilterChain(
             ServerHttpSecurity http
     ) {
-        http
+        return http
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers(
                                 "/registration",
                                 "/registration/**",
                                 "/api/auth/**",
-
                                 "/api/v1/observability/**",
-
                                 "/actuator/health",
                                 "/actuator/health/**",
                                 "/actuator/prometheus",
@@ -35,9 +33,8 @@ public class GatewaySecurityConfig {
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> {})
-                );
-
-        return http.build();
+                )
+                .build();
     }
 
     @Bean
