@@ -35,8 +35,6 @@ spring:
               uri: http://observability-service.observability.svc.cluster.local:8080
               predicates:
                 - Path=/api/v1/observability/**
-              filters:
-                - RewritePath=/api/v1/observability/(?<segment>.*), /api/observability/$\{segment}
 
 management:
   server:
