@@ -33,16 +33,11 @@ public class GatewayRoutesConfig {
 
                 .route("observability-service", r -> r
                         .path("/api/v1/observability/**")
-                        .filters(f -> f
-                                .rewritePath(
-                                        "/api/v1/observability/(?<segment>.*)",
-                                        "/api/observability/${segment}"
-                                )
-                        )
                         .uri(
                                 "http://observability-service" +
                                         ".observability.svc.cluster.local:8080"
-                        ))
+                        )
+                )
 
                 .build();
     }
