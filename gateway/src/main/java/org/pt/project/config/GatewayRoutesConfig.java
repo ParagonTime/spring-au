@@ -32,7 +32,10 @@ public class GatewayRoutesConfig {
                         .uri("http://search-service:8080"))
 
                 .route("observability-service", r -> r
-                        .path("/api/v1/observability/**")
+                        .path(
+                                "/api/v1/observability",
+                                "/api/v1/observability/**"
+                        )
                         .uri(
                                 "http://observability-service" +
                                         ".observability.svc.cluster.local:8080"
