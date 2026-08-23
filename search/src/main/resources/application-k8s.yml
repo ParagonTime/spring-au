@@ -55,11 +55,19 @@ management:
   opentelemetry:
     resource-attributes:
       service.name: search-service
-
     tracing:
       export:
         otlp:
-          endpoint: http://otel-collector.observability.svc.cluster.local:4318/v1/traces
+          endpoint: http://otel-collector:4318/v1/traces
+    logging:
+      export:
+        otlp:
+          endpoint: http://otel-collector:4318/v1/logs
+
+  otlp:
+    metrics:
+      export:
+        url: http://otel-collector:4318/v1/metrics
 
   endpoints:
     web:
@@ -69,7 +77,7 @@ management:
 
   endpoint:
     health:
-      show-details: always
+      show-details: never
       probes:
         enabled: true
     prometheus:
@@ -79,3 +87,6 @@ logging:
   structured:
     format:
       console: ecs
+  level:
+    io.micrometer.registry.otlp: WARN
+    io.opentelemetry.exporter: WARN

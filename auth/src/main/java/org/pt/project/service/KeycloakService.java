@@ -63,8 +63,10 @@ public class KeycloakService {
                 "username", request.getLogin(),
                 "email", request.getEmail(),
                 "enabled", true,
+                "emailVerified", true,
                 "firstName", request.getLogin(),
                 "lastName", request.getLogin(),
+                "requiredActions", List.of(),
                 "credentials", List.of(Map.of(
                         "type", "password",
                         "value", request.getPassword(),
@@ -85,11 +87,39 @@ public class KeycloakService {
         }
 
         String path = location.getPath();
+        String userIdStr = path.substring(path.lastIndexOf('/') + 1);
+        UUID userId = UUID.fromString(userIdStr);
+
+        resetPassword(userId, request.getPassword());
 
         log.info("Пользователь {} создан в Keycloak", request.getLogin());
+        return userId;
+    }
 
-        String userIdStr = path.substring(path.lastIndexOf('/') + 1);
-        return UUID.fromString(userIdStr);
+    public void resetPassword(UUID userId, String password) {
+        String url = authServerUrl
+                + "/admin/realms/"
+                + realm
+                + "/users/"
+                + userId
+                + "/reset-password";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(getAdminToken());
+
+        Map<String, Object> body = Map.of(
+                "type", "password",
+                "value", password,
+                "temporary", false
+        );
+
+        restTemplate.exchange(
+                url,
+                HttpMethod.PUT,
+                new HttpEntity<>(body, headers),
+                Void.class
+        );
     }
 
     public void updateKeycloakUser(UUID userId, Map<String, Object> updates) {

@@ -57,10 +57,33 @@ management:
   server:
     port: 8082
 
+  tracing:
+    sampling:
+      probability: 1.0
+    propagation:
+      type: w3c
+
+  opentelemetry:
+    resource-attributes:
+      service.name: app-service
+    tracing:
+      export:
+        otlp:
+          endpoint: http://otel-collector:4318/v1/traces
+    logging:
+      export:
+        otlp:
+          endpoint: http://otel-collector:4318/v1/logs
+
+  otlp:
+    metrics:
+      export:
+        url: http://otel-collector:4318/v1/metrics
+
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
+        include: health,info,metrics,prometheus
       base-path: /actuator
 
   endpoint:
@@ -68,7 +91,10 @@ management:
       show-details: never
       probes:
         enabled: true
+    prometheus:
+      enabled: true
 
-  tracing:
-    sampling:
-      probability: 0.0
+logging:
+  structured:
+    format:
+      console: ecs

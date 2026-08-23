@@ -13,8 +13,10 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-kafka'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-opentelemetry'
 
     implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'io.micrometer:micrometer-registry-prometheus'
 
     runtimeOnly 'org.postgresql:postgresql'
 

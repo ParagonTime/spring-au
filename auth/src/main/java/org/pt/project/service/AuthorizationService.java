@@ -4,11 +4,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.pt.project.dto.LoginRequest;
 import org.pt.project.dto.TokenResponse;
+import org.pt.project.exception.InvalidCredentialsException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.Instant;
@@ -45,14 +47,28 @@ public class AuthorizationService {
 
         HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(body, headers);
 
-        ResponseEntity<Map> response = restTemplate.exchange(
-                tokenUrl, HttpMethod.POST, entity, Map.class);
+        try {
+            ResponseEntity<Map> response = restTemplate.exchange(
+                    tokenUrl, HttpMethod.POST, entity, Map.class);
 
-        Map<String, Object> tokenData = response.getBody();
-        String accessToken = (String) tokenData.get("access_token");
-        long expiresIn = ((Number) tokenData.get("expires_in")).longValue();
+            Map<String, Object> tokenData = response.getBody();
+            if (tokenData == null || tokenData.get("access_token") == null) {
+                throw new InvalidCredentialsException("Keycloak не вернул access_token");
+            }
 
-        log.info("Token issued for user {}", request.getLogin());
-        return new TokenResponse(accessToken, Instant.now().plusSeconds(expiresIn));
+            String accessToken = (String) tokenData.get("access_token");
+            long expiresIn = ((Number) tokenData.get("expires_in")).longValue();
+
+            log.info("Token issued for user {}", request.getLogin());
+            return new TokenResponse(accessToken, Instant.now().plusSeconds(expiresIn));
+        } catch (HttpClientErrorException e) {
+            log.warn(
+                    "Token request failed for user {}: {} {}",
+                    request.getLogin(),
+                    e.getStatusCode().value(),
+                    e.getResponseBodyAsString()
+            );
+            throw new InvalidCredentialsException("Неверный логин или пароль");
+        }
     }
 }

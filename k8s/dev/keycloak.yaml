@@ -10,6 +10,17 @@ data:
       "realm": "task-realm",
       "enabled": true,
       "registrationAllowed": true,
+      "requiredActions": [
+        {
+          "alias": "VERIFY_PROFILE",
+          "name": "Verify Profile",
+          "providerId": "VERIFY_PROFILE",
+          "enabled": false,
+          "defaultAction": false,
+          "priority": 90,
+          "config": {}
+        }
+      ],
       "clients": [
         {
           "clientId": "task-client",
@@ -27,10 +38,15 @@ data:
           "username": "testuser",
           "enabled": true,
           "email": "test@test.com",
+          "emailVerified": true,
+          "firstName": "Test",
+          "lastName": "User",
+          "requiredActions": [],
           "credentials": [
             {
               "type": "password",
-              "value": "password"
+              "value": "password",
+              "temporary": false
             }
           ]
         }

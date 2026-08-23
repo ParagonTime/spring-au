@@ -60,9 +60,6 @@ data:
           initial_interval: 5s
           max_interval: 30s
 
-      debug:
-        verbosity: basic
-
     service:
       pipelines:
         logs:
@@ -75,7 +72,6 @@ data:
             - batch
           exporters:
             - elasticsearch
-            - debug
 
         traces:
           receivers:

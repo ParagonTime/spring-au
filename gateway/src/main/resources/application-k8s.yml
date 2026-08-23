@@ -18,6 +18,25 @@ management:
   tracing:
     sampling:
       probability: 1.0
+    propagation:
+      type: w3c
+
+  opentelemetry:
+    resource-attributes:
+      service.name: gateway
+    tracing:
+      export:
+        otlp:
+          endpoint: http://otel-collector:4318/v1/traces
+    logging:
+      export:
+        otlp:
+          endpoint: http://otel-collector:4318/v1/logs
+
+  otlp:
+    metrics:
+      export:
+        url: http://otel-collector:4318/v1/metrics
 
   endpoints:
     web:
@@ -30,7 +49,6 @@ management:
       show-details: never
       probes:
         enabled: true
-
     prometheus:
       enabled: true
 
@@ -38,6 +56,7 @@ logging:
   structured:
     format:
       console: ecs
-
   level:
-    org.springframework.cloud.gateway: DEBUG
+    org.springframework.cloud.gateway: INFO
+    io.micrometer.registry.otlp: WARN
+    io.opentelemetry.exporter: WARN
